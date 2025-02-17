@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  database:
+    image: "postgres:17"
+    command: -p ${DB_PORT}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    container_name: traffic_inspector_db
+    environment:
+      - TZ=Europe/Moscow
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - ./.postgres_files:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -p ${DB_PORT} -h 127.0.0.1"]
+      start_period: 5s
+      interval: 15s
+      timeout: 3s
+      retries: 2
+    restart: always
+
+  alembic:
+    build:
+      context: ./backend
+      # additional_contexts:
+      #   backend_dir: ./backend
+      dockerfile_inline: |
+        FROM     python:3.12
+        WORKDIR  /code
+        RUN      pip install alembic environs psycopg2
+        COPY     alembic.ini  .
+        COPY     models       models/
+        COPY     migrations   migrations/
+
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+    command: alembic upgrade head
+    container_name: traffic_inspector_alembic
+
+  backend:
+    build: .
+    container_name: traffic_inspector_backend
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      - database
+
+    restart: always
