@@ -1,0 +1,38 @@
+name: Check
+on: [push, pull_request]
+jobs:
+  sast:
+    name: SAST (ubuntu latest)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python 12
+        uses: actions/setup-python@v5
+        with:
+          python-version: 12
+      - name: Install poetry
+        run: |
+          curl -sSL 'https://install.python-poetry.org' | python
+
+          # Adding `poetry` to `$PATH`:
+          echo "$HOME/.poetry/bin" >> "$GITHUB_PATH"
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry run pip install -U pip
+          poetry install
+      - name: Run Ruff
+        run: |
+          ruff check && ruff format
+      - uses: wemake-services/wemake-python-styleguide@master
+      - name: Run WPS
+        with:
+          reporter: 'github-pr-review'
+          path: './backend'
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
