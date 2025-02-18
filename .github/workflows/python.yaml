@@ -33,8 +33,6 @@ jobs:
       - name: Run WPS
         uses: wemake-services/wemake-python-styleguide@master
         with:
-          persist-credentials: false
-        with:
           reporter: 'github-pr-review'
           path: './backend'
         env:
