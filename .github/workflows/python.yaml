@@ -37,7 +37,7 @@ jobs:
           poetry run pip install -U pip
           poetry install
       - name: Run RUFF
-      - uses: astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@v3
         with:
           src: "./backend"
           version: "latest"
