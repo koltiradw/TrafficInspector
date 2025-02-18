@@ -8,7 +8,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Set up Python 12
@@ -29,8 +30,10 @@ jobs:
       - name: Run Ruff
         run: |
           ruff check && ruff format
-      - uses: wemake-services/wemake-python-styleguide@master
       - name: Run WPS
+        uses: wemake-services/wemake-python-styleguide@master
+        with:
+          persist-credentials: false
         with:
           reporter: 'github-pr-review'
           path: './backend'
