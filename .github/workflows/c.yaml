@@ -31,7 +31,7 @@ jobs:
         with:
           build-command: "cd ${{ github.workspace }}/Build; cmake --build ."
       - name: Deploy SAST artfs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: "CodeChecker Bug Reports"
           path: ${{ steps.codechecker.outputs.result-html-dir }}
