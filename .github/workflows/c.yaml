@@ -26,12 +26,12 @@ jobs:
           mkdir build && cd build
           cmake .. -DDEBUG=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=OFF
       - name: CodeChecker
-      - uses: whisperity/codechecker-analysis-action@v1
+        uses: whisperity/codechecker-analysis-action@v1
         id: codechecker
         with:
           build-command: "cd ${{ github.workspace }}/Build; cmake --build ."
       - name: Deploy SAST artfs
-      - uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2
         with:
           name: "CodeChecker Bug Reports"
           path: ${{ steps.codechecker.outputs.result-html-dir }}
