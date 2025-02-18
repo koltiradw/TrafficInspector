@@ -1,5 +1,14 @@
-name: Check
-on: [push, pull_request]
+name: Check python sources
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
 jobs:
   sast:
     name: SAST (ubuntu latest)
