@@ -30,7 +30,7 @@ jobs:
         uses: whisperity/codechecker-analysis-action@v1
         id: codechecker
         with:
-          build-command: "cd ${{ github.workspace }}/Build; cmake --build ."
+          build-command: "cd ${{ github.workspace }}/build; cmake --build ."
       - name: Deploy SAST artfs
         uses: actions/upload-artifact@v4
         with:
