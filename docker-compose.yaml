@@ -25,10 +25,8 @@ services:
   alembic:
     build:
       context: ./backend
-      # additional_contexts:
-      #   backend_dir: ./backend
       dockerfile_inline: |
-        FROM     python:3.12
+        FROM     python:3.12-slim
         WORKDIR  /code
         RUN      pip install alembic environs psycopg2
         COPY     alembic.ini  .
@@ -44,7 +42,10 @@ services:
     container_name: traffic_inspector_alembic
 
   backend:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: poetry run python main.py
     container_name: traffic_inspector_backend
     env_file:
       - .env
