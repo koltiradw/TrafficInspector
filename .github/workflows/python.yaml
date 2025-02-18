@@ -36,9 +36,11 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry run pip install -U pip
           poetry install
-      - name: Run Ruff
-        run: |
-          ruff check && ruff format
+      - name: Run RUFF
+      - uses: astral-sh/ruff-action@v3
+        with:
+          src: "./backend"
+          version: "latest"
       - name: Run WPS
         uses: wemake-services/wemake-python-styleguide@master
         with:
