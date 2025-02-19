@@ -1,0 +1,41 @@
+name: CodeQL
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+jobs:
+  sast:
+      name: Analyze
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        pull-requests: read
+        checks: write
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+            submodules: 'recursive'
+        - name: Install nDPI Prerequisites
+          run: |
+            sudo apt-get update
+            sudo apt-get install autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev
+        - name: Initialize CodeQL
+          uses: github/codeql-action/init@v3
+          with:
+            languages: 'cpp'
+        - name: Build
+          run: |
+             mkdir build && cd build
+             cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DRELEASE=ON ..
+             make
+        - name: Perform CodeQL Analysis
+          uses: github/codeql-action/analyze@v3
+          with:
+            category: "/language:cpp"
