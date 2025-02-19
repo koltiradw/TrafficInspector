@@ -48,7 +48,7 @@ jobs:
             plog-converter PVS-Studio.log -t json -n relative -R toRelative -r $PWD
             plog-converter relative.json -t sarif -n pvs-report -r file://
         - name: Publish report
-          uses: github/codeql-action/upload-sarif@v2
+          uses: github/codeql-action/upload-sarif@v3
           with:
             sarif_file: pvs-report.sarif
             category: PVS-Studio
