@@ -17,6 +17,7 @@ jobs:
         contents: read
         pull-requests: read
         checks: write
+        security-events: write
       steps:
         - uses: actions/checkout@v4
           with:
