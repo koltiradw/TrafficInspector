@@ -1,10 +1,11 @@
 #ifndef __NDPI_WORKFLOW_H__
 #define __NDPI_WORKFLOW_H__
 
-#include <ndpi_api.h>
-#include <ndpi_main.h>
-#include <ndpi_typedefs.h>
 #include <pthread.h>
+
+#include "ndpi_api.h"
+#include "ndpi_main.h"
+#include "ndpi_typedefs.h"
 
 #include "afpacket.h"
 #include "collector_client.h"
