@@ -21,6 +21,9 @@ set(PCAP_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libpcap")
 set(PCAP_LIB "${PCAP_INSTALL_DIR}/lib/libpcap.a")
 
 
+include_directories("${NDPI_INSTALL_DIR}/include/ndpi/")
+include_directories("${INIH_SRC_DIR}")
+
 if(DEBUG)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -g -O0 -fno-omit-frame-pointer")
 endif(DEBUG)
@@ -50,9 +53,6 @@ ExternalProject_Add(libndpi
     BUILD_COMMAND cd ${NDPI_SRC_DIR} && $(MAKE)
     INSTALL_COMMAND cd ${NDPI_SRC_DIR} && $(MAKE) install
 )
-
-include_directories("${NDPI_INSTALL_DIR}/include/ndpi/")
-include_directories("${INIH_SRC_DIR}")
 
 add_executable(TrafficInspector src/core/main.c src/core/afpacket.c src/core/ndpi_workflow.c src/core/utils.c src/core/collector_client.c third_party/libinih/ini.c)
 
