@@ -37,8 +37,9 @@ jobs:
             pvs-studio-analyzer credentials ${{ secrets.PVS_STUDIO_CREDENTIALS }}
         - name: Build
           run: |
-            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DRELEASE=ON -B build .
-            cmake --build build -j
+            mkdir build && cd build
+            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DRELEASE=ON ..
+            make -j
         - name: Analyze
           run: |
             pvs-studio-analyzer analyze -f build/compile_commands.json -j
