@@ -1,0 +1,52 @@
+name: Check golang sources
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+jobs:
+  sast:
+      name: SAST (ubuntu latest)
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        pull-requests: read
+        checks: write
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - name: Install nDPI Prerequisites
+          run: |
+            sudo apt-get update
+            sudo apt-get install autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev
+        - name: Install PVS
+          run: |
+            wget -q -O - https://files.pvs-studio.com/etc/pubkey.txt \
+              | sudo apt-key add -
+            sudo wget -O /etc/apt/sources.list.d/viva64.list \
+              https://files.pvs-studio.com/etc/viva64.list
+            sudo apt update
+            sudo apt install pvs-studio
+            pvs-studio-analyzer credentials ${{ secrets.PVS_STUDIO_CREDENTIALS }}
+        - name: Build
+          run: |
+            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DRELEASE=ON -B build .
+            cmake --build build -j
+        - name: Analyze
+          run: |
+            pvs-studio-analyzer analyze -f build/compile_commands.json -j
+        - name: Convert report
+          run: |
+            plog-converter PVS-Studio.log -t json -n relative -R toRelative -r $PWD
+            plog-converter relative.json -t sarif -n pvs-report -r file://
+        - name: Publish report
+          uses: github/codeql-action/upload-sarif@v1
+          with:
+            sarif_file: pvs-report.sarif
+            category: PVS-Studio
