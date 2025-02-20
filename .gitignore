@@ -4,4 +4,5 @@ collector/collector
 *.o
 test
 test_conf.ini
+test-conf.ini
 build/*
