@@ -205,7 +205,7 @@ func server(ctx context.Context, address string, pg *postgres) (err error) {
 				doneChan <- err
 				return
 			}
-
+			fmt.Printf("%+v\n", info)
 			id := pg.GetFlowID(ctx, info)
 
 			if id != 0 {

@@ -9,6 +9,7 @@
 
 #include "afpacket.h"
 #include "collector_client.h"
+#include "message_queue.h"
 
 typedef struct {
     afpacket_t* handle;
@@ -37,10 +38,11 @@ typedef struct {
     int number_of_workers;
     pthread_t thread;
     ndpi_workflow_t* workflow;
+    mqueue_t* message_queue;
 } worker_t;
 
-ndpi_workflow_t* init_workflow(const char* name_of_device, int fanout_group_id, const char* collector_host,
-                               const int collector_port, const char* path_to_country_db, const char* path_to_asn_db);
+ndpi_workflow_t* init_workflow(const char* name_of_device, int fanout_group_id, const char* path_to_country_db,
+                               const char* path_to_asn_db);
 void free_workflow(ndpi_workflow_t** const workflow);
 void ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, const uint8_t* packet);
 

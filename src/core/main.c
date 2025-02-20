@@ -11,6 +11,7 @@
 #include "ini.h"
 
 #include "afpacket.h"
+#include "message_queue.h"
 #include "ndpi_workflow.h"
 
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
@@ -27,6 +28,16 @@ typedef struct {
     char* path_to_country_db;
     char* path_to_asn_db;
 } config_t;
+
+void
+init_config(config_t* config) {
+    config->number_of_workers = 0;
+    config->name_of_device = NULL;
+    config->collector_host = NULL;
+    config->collector_port = 0;
+    config->path_to_country_db = NULL;
+    config->path_to_asn_db = NULL;
+}
 
 static worker_t* workers = NULL;
 
@@ -68,7 +79,7 @@ sig_handler(int sig) {
 }
 
 static int
-setup_workers(const config_t* config) {
+setup_workers(const config_t* config, mqueue_t* mq) {
     struct sigaction action;
     action.sa_handler = sig_handler;
     sigemptyset(&action.sa_mask);
@@ -85,8 +96,8 @@ setup_workers(const config_t* config) {
     for (int i = 0; i < config->number_of_workers; i++) {
         workers[i].id = i;
         workers[i].number_of_workers = config->number_of_workers;
-        if (!(workers[i].workflow = init_workflow(config->name_of_device, fanout_group_id, config->collector_host,
-                                                  config->collector_port, config->path_to_country_db,
+        workers[i].message_queue = mq;
+        if (!(workers[i].workflow = init_workflow(config->name_of_device, fanout_group_id, config->path_to_country_db,
                                                   config->path_to_asn_db))) {
             free(workers);
             fprintf(stderr, "Failed to allocate workflow\n");
@@ -114,6 +125,15 @@ main(int argc, char** argv) {
     int option = -1;
     config_t config;
     char* path_to_config = NULL;
+    mqueue_t mq;
+    collector_client_t* client = NULL;
+
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&mq.mtx, &attr);
+    pthread_cond_init(&mq.cond, NULL);
+    TAILQ_INIT(&mq.tailq);
 
     while ((option = getopt(argc, argv, "hc:")) != -1) {
         switch (option) {
@@ -130,25 +150,51 @@ main(int argc, char** argv) {
         }
     }
 
+    init_config(&config);
+
     if (ini_parse(path_to_config, config_handler, &config) < 0) {
         fprintf(stderr, "Can't load '%s'.\n", path_to_config);
         free(path_to_config);
         return 1;
     }
 
-    printf("Launching workers...\n");
-
-    if (setup_workers(&config) == -1) {
-        goto out;
+    if (!(client = init_collector_client(config.collector_host, config.collector_port))) {
+        return 1;
     }
 
+    printf("Launching workers...\n");
+
+    if (setup_workers(&config, &mq) == -1) {
+        goto out;
+    }
+    char* data = NULL;
+    size_t len = 0;
     while (!atomic_load(&shutdown_requested)) {
-        sleep(1);
+        pthread_mutex_lock(&mq.mtx);
+        pthread_cond_wait(&mq.cond, &mq.mtx);
+        if (!TAILQ_EMPTY(&mq.tailq)) {
+            struct entry* msg = TAILQ_FIRST(&mq.tailq);
+
+            len = strlen(msg->flow_data);
+            data = malloc((len) + 1);
+            memcpy(data, msg->flow_data, len);
+            data[len] = '\0';
+
+            free((char*)msg->flow_data);
+            msg->flow_data = NULL;
+
+            TAILQ_REMOVE(&mq.tailq, msg, entries);
+            pthread_mutex_unlock(&mq.mtx);
+            send_to_collector(client, data, len);
+            free(data);
+        }
     }
 
     stop_workers(&config);
-
+    close_collector_client(client);
 out:
+    pthread_mutex_destroy(&mq.mtx);
+    pthread_cond_destroy(&mq.cond);
     free(path_to_config);
     free(config.name_of_device);
     free(config.collector_host);

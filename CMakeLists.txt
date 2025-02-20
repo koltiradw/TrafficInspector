@@ -25,8 +25,19 @@ include_directories("${NDPI_INSTALL_DIR}/include/ndpi/")
 include_directories("${INIH_SRC_DIR}")
 
 if(DEBUG)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -g -O0 -fno-omit-frame-pointer")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -g -O0 -fno-omit-frame-pointer -flto")
 endif(DEBUG)
+
+if(TSAN)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=thread")
+endif(TSAN)
+
+if(ASAN)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+endif(ASAN)
+
 
 if(RELEASE)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -O2 -std=gnu11 -flto")
