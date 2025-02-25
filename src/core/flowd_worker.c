@@ -19,6 +19,7 @@ init_flowd_worker(const char* endpoint, lfqueue_t* mq) {
 
     worker->ctx = zmq_ctx_new();
     if (!worker->ctx) {
+        free(worker);
         return NULL;
     }
 
