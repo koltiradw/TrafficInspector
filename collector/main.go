@@ -185,7 +185,10 @@ func server(ctx context.Context, endpoint string, pg *postgres) (err error) {
 	}
 	defer puller.Close()
 
-	puller.SetRcvhwm(size_of_queue)
+	err = puller.SetRcvhwm(size_of_queue)
+	if err != nil {
+		return err
+	}
 
 	err = puller.Connect(endpoint)
 	if err != nil {
