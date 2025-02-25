@@ -1,4 +1,5 @@
 #include "ndpi_workflow.h"
+#include "dpi_worker.h"
 #include "utils.h"
 
 #include <linux/if_ether.h>
@@ -59,54 +60,50 @@ typedef struct {
 } ndpi_flow_info_t;
 
 ndpi_workflow_t*
-init_workflow(const char* name_of_device, int fanout_group_id, const char* collector_host, const int collector_port,
-              const char* path_to_country_db, const char* path_to_asn_db) {
+init_workflow(const char* name_of_device, int fanout_group_id, const char* path_to_country_db,
+              const char* path_to_asn_db) {
     ndpi_workflow_t* workflow = NULL;
     if (!(workflow = (ndpi_workflow_t*)ndpi_calloc(1, sizeof(ndpi_workflow_t)))) {
         return NULL;
     }
 
-    if (!(workflow->client = init_collector_client(collector_host, collector_port))) {
-        return NULL;
-    }
-
     if (!(workflow->handle = open_afpacket_socket(name_of_device, fanout_group_id))) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
     if (!(workflow->ndpi_struct = ndpi_init_detection_module(NULL))) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
     workflow->total_active_flows = 0;
     workflow->max_active_flows = MAX_FLOW_ROOTS_PER_THREAD;
     if (!(workflow->ndpi_flows_active = (void**)ndpi_calloc(workflow->max_active_flows, sizeof(void*)))) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
     workflow->total_idle_flows = 0;
     workflow->max_idle_flows = MAX_IDLE_FLOWS_PER_THREAD;
     if (!(workflow->ndpi_flows_idle = (void**)ndpi_calloc(workflow->max_idle_flows, sizeof(void*)))) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
     if (ndpi_init_serializer(&workflow->flow_serializer, ndpi_serialization_format_json) == -1) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
     NDPI_PROTOCOL_BITMASK protos;
     NDPI_BITMASK_SET_ALL(protos);
     if (ndpi_set_protocol_detection_bitmask2(workflow->ndpi_struct, &protos) == -1) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
     if (ndpi_finalize_initialization(workflow->ndpi_struct) == -1) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
@@ -114,7 +111,7 @@ init_workflow(const char* name_of_device, int fanout_group_id, const char* colle
     ndpi_set_config(workflow->ndpi_struct, "tls", "application_blocks_tracking", "1");
 
     if (ndpi_load_geoip(workflow->ndpi_struct, path_to_country_db, path_to_asn_db) < 0) {
-        free_workflow(&workflow);
+        free_workflow(workflow);
         return NULL;
     }
 
@@ -130,28 +127,19 @@ __ndpi_flow_info_free(void* const node) {
 }
 
 void
-free_workflow(ndpi_workflow_t** const workflow) {
-    ndpi_workflow_t* const w = *workflow;
-    size_t i;
-
-    if (w == NULL) {
-        return;
+free_workflow(ndpi_workflow_t* workflow) {
+    if (workflow->ndpi_struct != NULL) {
+        ndpi_exit_detection_module(workflow->ndpi_struct);
+    }
+    for (size_t i = 0; i < workflow->max_active_flows; i++) {
+        ndpi_tdestroy(workflow->ndpi_flows_active[i], __ndpi_flow_info_free);
     }
 
-    if (w->ndpi_struct != NULL) {
-        ndpi_exit_detection_module(w->ndpi_struct);
-    }
-    for (i = 0; i < w->max_active_flows; i++) {
-        ndpi_tdestroy(w->ndpi_flows_active[i], __ndpi_flow_info_free);
-    }
-
-    afpacket_close(w->handle);
-    close_collector_client(w->client);
-    ndpi_term_serializer(&w->flow_serializer);
-    ndpi_free(w->ndpi_flows_active);
-    ndpi_free(w->ndpi_flows_idle);
-    ndpi_free(w);
-    *workflow = NULL;
+    afpacket_close(workflow->handle);
+    ndpi_term_serializer(&workflow->flow_serializer);
+    ndpi_free(workflow->ndpi_flows_active);
+    ndpi_free(workflow->ndpi_flows_idle);
+    ndpi_free(workflow);
 }
 
 static int
@@ -286,7 +274,7 @@ __check_for_idle_flows(ndpi_workflow_t* const workflow) {
 
 void
 ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, const uint8_t* packet) {
-    worker_t* worker = (worker_t*)args;
+    dpi_worker_t* worker = (dpi_worker_t*)args;
 
     if (!worker) {
         return;
@@ -321,7 +309,8 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
 
     memset(&flow, 0, sizeof(flow));
 
-    time_ms = (((uint64_t)header->ts.tv_sec) * TICK_RESOLUTION + header->ts.tv_usec / (1000000 / TICK_RESOLUTION)) / 1000;
+    time_ms = (((uint64_t)header->ts.tv_sec) * TICK_RESOLUTION + header->ts.tv_usec / (1000000 / TICK_RESOLUTION))
+              / 1000;
     workflow->last_time = time_ms;
 
     __check_for_idle_flows(workflow);
@@ -587,8 +576,8 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
              first_seen[50] = {'\0'}, last_seen[50] = {'\0'};
         char src_name[INET6_ADDRSTRLEN] = {'\0'}, dst_name[INET6_ADDRSTRLEN] = {'\0'};
         uint32_t as = 0;
-        const char *local = "local";
-        const char *unknown = "unknown";
+        const char* local = "local";
+        const char* unknown = "unknown";
 
         convert_timestamp_to_datetime(flow_to_process->first_seen, first_seen, sizeof(first_seen));
         convert_timestamp_to_datetime(flow_to_process->last_seen, last_seen, sizeof(first_seen));
@@ -599,8 +588,9 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
                 memcpy(src_as, local, strlen(local));
             } else {
                 inet_ntop(AF_INET, &flow_to_process->ip_tuple.v4.src, src_name, sizeof(src_name));
-                ndpi_get_geoip_country_continent(workflow->ndpi_struct, src_name, src_country, sizeof(src_name), NULL, 0);
-                if(src_country[0] == '\0') {
+                ndpi_get_geoip_country_continent(workflow->ndpi_struct, src_name, src_country, sizeof(src_name), NULL,
+                                                 0);
+                if (src_country[0] == '\0') {
                     memcpy(src_country, unknown, strlen(unknown));
                 }
                 ndpi_get_geoip_asn(workflow->ndpi_struct, src_name, &as);
@@ -616,8 +606,9 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
                 memcpy(dst_as, local, strlen(local));
             } else {
                 inet_ntop(AF_INET, &flow_to_process->ip_tuple.v4.dst, dst_name, sizeof(dst_name));
-                ndpi_get_geoip_country_continent(workflow->ndpi_struct, dst_name, dst_country, sizeof(dst_name), NULL, 0);
-                if(dst_country[0] == '\0') {
+                ndpi_get_geoip_country_continent(workflow->ndpi_struct, dst_name, dst_country, sizeof(dst_name), NULL,
+                                                 0);
+                if (dst_country[0] == '\0') {
                     memcpy(dst_country, unknown, strlen(unknown));
                 }
                 ndpi_get_geoip_asn(workflow->ndpi_struct, dst_name, &as);
@@ -632,8 +623,9 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
                 memcpy(src_country, local, strlen(local));
             } else {
                 inet_ntop(AF_INET, &flow_to_process->ip_tuple.v6.src, src_name, sizeof(src_name));
-                ndpi_get_geoip_country_continent(workflow->ndpi_struct, src_name, src_country, sizeof(src_name), NULL, 0);
-                if(src_country[0] == '\0') {
+                ndpi_get_geoip_country_continent(workflow->ndpi_struct, src_name, src_country, sizeof(src_name), NULL,
+                                                 0);
+                if (src_country[0] == '\0') {
                     memcpy(src_country, unknown, strlen(unknown));
                 }
                 ndpi_get_geoip_asn(workflow->ndpi_struct, src_name, &as);
@@ -648,8 +640,9 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
                 memcpy(dst_country, local, strlen(local));
             } else {
                 inet_ntop(AF_INET, &flow_to_process->ip_tuple.v6.dst, dst_name, sizeof(dst_name));
-                ndpi_get_geoip_country_continent(workflow->ndpi_struct, dst_name, dst_country, sizeof(dst_name), NULL, 0);
-                if(dst_country[0] == '\0') {
+                ndpi_get_geoip_country_continent(workflow->ndpi_struct, dst_name, dst_country, sizeof(dst_name), NULL,
+                                                 0);
+                if (dst_country[0] == '\0') {
                     memcpy(dst_country, unknown, strlen(unknown));
                 }
                 ndpi_get_geoip_asn(workflow->ndpi_struct, dst_name, &as);
@@ -661,7 +654,6 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
             }
         }
 
-    
         ndpi_serialize_string_string(&workflow->flow_serializer, "src_country", src_country);
         ndpi_serialize_string_string(&workflow->flow_serializer, "dst_country", dst_country);
         ndpi_serialize_string_string(&workflow->flow_serializer, "src_as", src_as);
@@ -671,7 +663,9 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
         ndpi_serialize_string_uint64(&workflow->flow_serializer, "num_pkts", flow_to_process->num_of_pkts);
         ndpi_serialize_string_uint64(&workflow->flow_serializer, "len_pkts", flow_to_process->len_of_pkts);
         const char* json_str = ndpi_serializer_get_buffer(&workflow->flow_serializer, &json_str_len);
-        send_to_collector(workflow->client, json_str, json_str_len);
+
+        lfqueue_enq(worker->message_queue, strdup(json_str));
+
         ndpi_reset_serializer(&workflow->flow_serializer);
     }
 }

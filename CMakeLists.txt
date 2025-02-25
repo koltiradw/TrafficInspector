@@ -12,6 +12,8 @@ set(NDPI_LIB "${NDPI_INSTALL_DIR}/lib/libndpi.a")
 
 set(INIH_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libinih")
 
+set(LFQUEUE_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/lfqueue")
+
 set(MAXMINDDB_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/libmaxminddb")
 set(MAXMINDDB_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libmaxminddb")
 set(MAXMINDDB_LIB "${MAXMINDDB_INSTALL_DIR}/lib/libmaxminddb.a")
@@ -23,9 +25,11 @@ set(PCAP_LIB "${PCAP_INSTALL_DIR}/lib/libpcap.a")
 
 include_directories("${NDPI_INSTALL_DIR}/include/ndpi/")
 include_directories("${INIH_SRC_DIR}")
+include_directories("${LFQUEUE_SRC_DIR}")
 
 if(DEBUG)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -g -O0 -fno-omit-frame-pointer")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -g -O0 -fno-omit-frame-pointer -flto -fsanitize=address")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold -fsanitize=address")
 endif(DEBUG)
 
 if(RELEASE)
@@ -54,6 +58,6 @@ ExternalProject_Add(libndpi
     INSTALL_COMMAND cd ${NDPI_SRC_DIR} && $(MAKE) install
 )
 
-add_executable(TrafficInspector src/core/main.c src/core/afpacket.c src/core/ndpi_workflow.c src/core/utils.c src/core/collector_client.c third_party/libinih/ini.c)
+add_executable(TrafficInspector src/core/main.c src/core/afpacket.c src/core/ndpi_workflow.c src/core/utils.c src/core/flowd_worker.c src/core/dpi_worker.c src/core/config.c third_party/lfqueue/lfqueue.c third_party/libinih/ini.c)
 
-target_link_libraries(TrafficInspector PUBLIC ${NDPI_LIB} ${MAXMINDDB_LIB} ${PCAP_LIB} -lpthread -lm)
+target_link_libraries(TrafficInspector PUBLIC ${NDPI_LIB} ${MAXMINDDB_LIB} ${PCAP_LIB} -lpthread -lzmq -lm)

@@ -3,16 +3,15 @@
 
 #include <pthread.h>
 
+#include "lfqueue.h"
 #include "ndpi_api.h"
 #include "ndpi_main.h"
 #include "ndpi_typedefs.h"
 
 #include "afpacket.h"
-#include "collector_client.h"
 
 typedef struct {
     afpacket_t* handle;
-    collector_client_t* client;
     ndpi_serializer flow_serializer;
     uint64_t detected_flow_protocols;
 
@@ -32,16 +31,9 @@ typedef struct {
     struct ndpi_detection_module_struct* ndpi_struct;
 } ndpi_workflow_t;
 
-typedef struct {
-    int id;
-    int number_of_workers;
-    pthread_t thread;
-    ndpi_workflow_t* workflow;
-} worker_t;
-
-ndpi_workflow_t* init_workflow(const char* name_of_device, int fanout_group_id, const char* collector_host,
-                               const int collector_port, const char* path_to_country_db, const char* path_to_asn_db);
-void free_workflow(ndpi_workflow_t** const workflow);
+ndpi_workflow_t* init_workflow(const char* name_of_device, int fanout_group_id, const char* path_to_country_db,
+                               const char* path_to_asn_db);
+void free_workflow(ndpi_workflow_t* workflow);
 void ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, const uint8_t* packet);
 
 #endif /* __NDPI_WORKFLOW_H__ */

@@ -40,7 +40,7 @@ __set_promisc_mode(const int socket_fd, const int interface_number) {
     return setsockopt(socket_fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP, (void*)&sock_params, sizeof(sock_params));
 }
 
-static int
+/*static int
 __set_bpf_filter(const char* name_of_device, const int sockfd) {
     struct bpf_program bpf;
     pcap_t* handle = pcap_open_dead(DLT_EN10MB, 65536);
@@ -59,7 +59,7 @@ __set_bpf_filter(const char* name_of_device, const int sockfd) {
     pcap_freecode(&bpf);
     pcap_close(handle);
     return 0;
-}
+}*/
 
 static struct iovec*
 __setup_rx_ring(const int socket_fd, const struct sockaddr_ll* bind_address) {
@@ -122,12 +122,12 @@ open_afpacket_socket(const char* name_of_device, const int fanout_group_id) {
         return NULL;
     }
 
-    if (__set_bpf_filter(name_of_device, handle->socket_fd) == -1) {
+    /*if (__set_bpf_filter(name_of_device, handle->socket_fd) == -1) {
         fprintf(stderr, "Failed to set bpf filter to device\n");
         close(handle->socket_fd);
         free(handle);
         return NULL;
-    }
+    }*/
 
     if (setsockopt(handle->socket_fd, SOL_PACKET, PACKET_VERSION, &TPACKET_VERSION, sizeof(TPACKET_VERSION)) == -1) {
         close(handle->socket_fd);

@@ -1,19 +1,16 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"os"
 	"sync"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	zmq "github.com/pebbe/zmq4"
 )
-
-const maxBufferSize = 65536
 
 type postgres struct {
 	db *pgxpool.Pool
@@ -23,6 +20,8 @@ var (
 	pgInstance *postgres
 	pgOnce     sync.Once
 )
+
+const size_of_queue = 1000
 
 type FlowInfo struct {
 	SrcIp          string                 `json:"src_ip"`
@@ -179,33 +178,36 @@ func (pg *postgres) GetFlowID(ctx context.Context, info FlowInfo) int {
 	return id
 }
 
-func server(ctx context.Context, address string, pg *postgres) (err error) {
-	pc, err := net.ListenPacket("udp", address)
+func server(ctx context.Context, endpoint string, pg *postgres) (err error) {
+	puller, err := zmq.NewSocket(zmq.PULL)
 	if err != nil {
-		return
+		return err
+	}
+	defer puller.Close()
+
+	puller.SetRcvhwm(size_of_queue)
+
+	err = puller.Connect(endpoint)
+	if err != nil {
+		return err
 	}
 
-	defer pc.Close()
-
 	doneChan := make(chan error, 1)
-	buffer := make([]byte, maxBufferSize)
 
 	go func() {
 		for {
-			_, _, err := pc.ReadFrom(buffer)
+			msg, err := puller.Recv(0)
 			if err != nil {
 				doneChan <- err
-				return
+				continue
 			}
 
 			var info FlowInfo
-			reader := bytes.NewReader(buffer)
-			err = json.NewDecoder(reader).Decode(&info)
+			err = json.Unmarshal([]byte(msg), &info)
 			if err != nil {
 				doneChan <- err
 				return
 			}
-
 			id := pg.GetFlowID(ctx, info)
 
 			if id != 0 {
@@ -248,7 +250,7 @@ func main() {
 
 	defer pg.Close()
 
-	err = server(ctx, os.Getenv("COLLECTOR_URL"), pg)
+	err = server(ctx, os.Getenv("ZMQ_ENDPOINT"), pg)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
