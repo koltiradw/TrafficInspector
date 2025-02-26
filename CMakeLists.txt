@@ -25,7 +25,6 @@ set(PCAP_LIB "${PCAP_INSTALL_DIR}/lib/libpcap.a")
 
 include_directories("${NDPI_INSTALL_DIR}/include/ndpi/")
 include_directories("${INIH_SRC_DIR}")
-include_directories("${LFQUEUE_SRC_DIR}")
 
 if(DEBUG)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -g -O0 -fno-omit-frame-pointer -flto -fsanitize=address")
@@ -58,6 +57,6 @@ ExternalProject_Add(libndpi
     INSTALL_COMMAND cd ${NDPI_SRC_DIR} && $(MAKE) install
 )
 
-add_executable(TrafficInspector src/core/main.c src/core/afpacket.c src/core/ndpi_workflow.c src/core/utils.c src/core/flowd_worker.c src/core/dpi_worker.c src/core/config.c third_party/lfqueue/lfqueue.c third_party/libinih/ini.c)
+add_executable(TrafficInspector src/core/main.c src/core/afpacket.c src/core/ndpi_workflow.c src/core/utils.c src/core/zmq_log.c src/core/dpi_worker.c src/core/config.c third_party/libinih/ini.c)
 
 target_link_libraries(TrafficInspector PUBLIC ${NDPI_LIB} ${MAXMINDDB_LIB} ${PCAP_LIB} -lpthread -lzmq -lm)

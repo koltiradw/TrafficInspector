@@ -7,7 +7,7 @@
 typedef struct {
     uint8_t number_of_workers;
     char* name_of_device;
-    char* flowd_endpoint;
+    char* zmq_endpoint;
     char* path_to_country_db;
     char* path_to_asn_db;
 } config_t;

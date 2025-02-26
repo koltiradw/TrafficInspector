@@ -13,8 +13,6 @@
 #include "afpacket.h"
 #include "config.h"
 #include "dpi_worker.h"
-#include "flowd_worker.h"
-#include "lfqueue.h"
 #include "ndpi_workflow.h"
 
 const char* HELP = "TrafficInspector - simple packet inspection solution based on nDPI\n"
@@ -22,7 +20,6 @@ const char* HELP = "TrafficInspector - simple packet inspection solution based o
                    "\t-c path      Path to config file.\n";
 
 static dpi_worker_t* dpi_workers = NULL;
-static flowd_worker_t* flowd_worker = NULL;
 
 static atomic_bool shutdown_requested = false;
 
@@ -33,7 +30,7 @@ sig_handler(int sig) {
 }
 
 static int
-setup_workers(const config_t* config, lfqueue_t* mq) {
+setup_workers(const config_t* config) {
     struct sigaction action;
     action.sa_handler = sig_handler;
     sigemptyset(&action.sa_mask);
@@ -43,12 +40,7 @@ setup_workers(const config_t* config, lfqueue_t* mq) {
 
     int fanout_group_id = getpid() & 0xffff;
 
-    if (!(flowd_worker = init_flowd_worker(config->flowd_endpoint, mq))) {
-        fprintf(stderr, "Failed to init flowd worker\n");
-        return -1;
-    }
-
-    if (!(dpi_workers = init_dpi_workers(config, fanout_group_id, mq))) {
+    if (!(dpi_workers = init_dpi_workers(config, fanout_group_id))) {
         fprintf(stderr, "Failed to init dpi worker\n");
         return -1;
     }
@@ -58,7 +50,6 @@ setup_workers(const config_t* config, lfqueue_t* mq) {
         pthread_create(&dpi_workers[i].thread, NULL, run_dpi_worker, (void*)&dpi_workers[i]);
     }
 
-    pthread_create(&flowd_worker->thread, NULL, run_flowd_worker, (void*)flowd_worker);
     return 0;
 }
 
@@ -70,10 +61,6 @@ stop_workers(const config_t* config) {
     }
 
     deinit_dpi_workers(dpi_workers);
-
-    pthread_kill(flowd_worker->thread, SIGINT);
-    pthread_join(flowd_worker->thread, NULL);
-    deinit_flowd_worker(flowd_worker);
 }
 
 int
@@ -81,12 +68,6 @@ main(int argc, char** argv) {
     int option = -1;
     config_t config;
     char* path_to_config = NULL;
-    lfqueue_t mq;
-
-    if (lfqueue_init(&mq) == -1) {
-        fprintf(stderr, "Failed to initialize queue\n");
-        return -1;
-    }
 
     while ((option = getopt(argc, argv, "hc:")) != -1) {
         switch (option) {
@@ -111,7 +92,7 @@ main(int argc, char** argv) {
 
     printf("Launching workers...\n");
 
-    if (setup_workers(&config, &mq) == -1) {
+    if (setup_workers(&config) == -1) {
         goto out;
     }
 
@@ -121,7 +102,6 @@ main(int argc, char** argv) {
 
     stop_workers(&config);
 
-    lfqueue_destroy(&mq);
 out:
     free(path_to_config);
     deinit_config(&config);

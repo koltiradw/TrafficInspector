@@ -3,16 +3,17 @@
 
 #include <pthread.h>
 
-#include "lfqueue.h"
 #include "ndpi_api.h"
 #include "ndpi_main.h"
 #include "ndpi_typedefs.h"
 
 #include "afpacket.h"
+#include "zmq_log.h"
 
 typedef struct {
     afpacket_t* handle;
     ndpi_serializer flow_serializer;
+    zmq_log_t* socket;
     uint64_t detected_flow_protocols;
 
     uint64_t last_idle_scan_time;
@@ -32,7 +33,7 @@ typedef struct {
 } ndpi_workflow_t;
 
 ndpi_workflow_t* init_workflow(const char* name_of_device, int fanout_group_id, const char* path_to_country_db,
-                               const char* path_to_asn_db);
+                               const char* path_to_asn_db, const char* zmq_endpoint);
 void free_workflow(ndpi_workflow_t* workflow);
 void ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, const uint8_t* packet);
 

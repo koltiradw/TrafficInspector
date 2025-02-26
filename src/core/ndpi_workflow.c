@@ -2,8 +2,12 @@
 #include "dpi_worker.h"
 #include "utils.h"
 
+#include <zmq.h>
+
+#include <errno.h>
 #include <linux/if_ether.h>
 #include <time.h>
+#include <unistd.h>
 
 // consts from nDPISimpleIntegration....
 #define MAX_FLOW_ROOTS_PER_THREAD 2048
@@ -61,13 +65,18 @@ typedef struct {
 
 ndpi_workflow_t*
 init_workflow(const char* name_of_device, int fanout_group_id, const char* path_to_country_db,
-              const char* path_to_asn_db) {
+              const char* path_to_asn_db, const char* zmq_endpoint) {
     ndpi_workflow_t* workflow = NULL;
     if (!(workflow = (ndpi_workflow_t*)ndpi_calloc(1, sizeof(ndpi_workflow_t)))) {
         return NULL;
     }
 
     if (!(workflow->handle = open_afpacket_socket(name_of_device, fanout_group_id))) {
+        free_workflow(workflow);
+        return NULL;
+    }
+
+    if (!(workflow->socket = init_zmq_log(zmq_endpoint))) {
         free_workflow(workflow);
         return NULL;
     }
@@ -136,6 +145,7 @@ free_workflow(ndpi_workflow_t* workflow) {
     }
 
     afpacket_close(workflow->handle);
+    deinit_zmq_log(workflow->socket);
     ndpi_term_serializer(&workflow->flow_serializer);
     ndpi_free(workflow->ndpi_flows_active);
     ndpi_free(workflow->ndpi_flows_idle);
@@ -664,7 +674,7 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
         ndpi_serialize_string_uint64(&workflow->flow_serializer, "len_pkts", flow_to_process->len_of_pkts);
         const char* json_str = ndpi_serializer_get_buffer(&workflow->flow_serializer, &json_str_len);
 
-        lfqueue_enq(worker->message_queue, strdup(json_str));
+        zmq_send(workflow->socket->pusher, json_str, strlen(json_str), ZMQ_DONTWAIT);
 
         ndpi_reset_serializer(&workflow->flow_serializer);
     }
