@@ -6,8 +6,6 @@
 
 #include <zmq.h>
 
-const int MAX_SIZE_OF_QUEUE = 1000;
-
 zmq_log_t*
 init_zmq_log(const char* endpoint) {
     zmq_log_t* socket = NULL;
@@ -23,7 +21,6 @@ init_zmq_log(const char* endpoint) {
     }
 
     socket->pusher = zmq_socket(socket->ctx, ZMQ_PUSH);
-    zmq_setsockopt(socket->pusher, ZMQ_SNDHWM, &MAX_SIZE_OF_QUEUE, sizeof(MAX_SIZE_OF_QUEUE));
     zmq_bind(socket->pusher, endpoint);
 
     return socket;
