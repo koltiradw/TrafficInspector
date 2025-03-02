@@ -59,4 +59,4 @@ ExternalProject_Add(libndpi
 
 add_executable(TrafficInspector src/core/main.c src/core/afpacket.c src/core/ndpi_workflow.c src/core/utils.c src/core/zmq_log.c src/core/dpi_worker.c src/core/config.c third_party/libinih/ini.c)
 
-target_link_libraries(TrafficInspector PUBLIC ${NDPI_LIB} ${MAXMINDDB_LIB} ${PCAP_LIB} -lpthread -lzmq -lm)
+target_link_libraries(TrafficInspector PUBLIC ${NDPI_LIB} ${MAXMINDDB_LIB} ${PCAP_LIB} -lpthread -lzmq -luuid -lm)

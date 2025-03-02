@@ -22,15 +22,16 @@ var (
 	pgOnce     sync.Once
 )
 
-const size_of_queue = 1000
-
 type FlowInfo struct {
+	Id             string                 `json:"uuid"`
 	SrcIp          string                 `json:"src_ip"`
 	DstIp          string                 `json:"dest_ip"`
 	SrcPort        uint16                 `json:"src_port"`
 	DstPort        uint16                 `json:"dst_port"`
 	IpV            uint8                  `json:"ip"`
 	TcpFingerprint string                 `json:"tcp_fingerprint"`
+	ClientOS       string                 `json:"client_os"`
+	ServerOS       string                 `json:"server_os"`
 	Proto          string                 `json:"proto"`
 	SrcCountry     string                 `json:"src_country"`
 	DstCountry     string                 `json:"dst_country"`
@@ -38,8 +39,10 @@ type FlowInfo struct {
 	DstAS          string                 `json:"dst_as"`
 	FirstSeen      string                 `json:"first_seen"`
 	LastSeen       string                 `json:"last_seen"`
-	NumPkts        uint64                 `json:"num_pkts"`
-	LenPkts        uint64                 `json:"len_pkts"`
+	ClientNumPkts  uint64                 `json:"client_num_pkts"`
+	ServertNumPkts uint64                 `json:"server_num_pkts"`
+	ClientLenPkts  uint64                 `json:"client_len_pkts"`
+	ServerLenPkts  uint64                 `json:"server_len_pkts"`
 	Ndpi           map[string]interface{} `json:"ndpi"`
 }
 
@@ -65,12 +68,15 @@ func (pg *postgres) Close() {
 }
 
 func (pg *postgres) InsertFlowInfo(ctx context.Context, info FlowInfo) (err error) {
-	query := `INSERT INTO flow_info (src_ip, 
+	query := `INSERT INTO flow_info (id,
+					src_ip, 
 					dst_ip,
 					src_port,
 					dst_port,
 					ipv,
 					tcp_fingerprint,
+					client_os,
+					server_os,
 					proto,
 					src_country,
 					dst_country,
@@ -78,16 +84,21 @@ func (pg *postgres) InsertFlowInfo(ctx context.Context, info FlowInfo) (err erro
 					dst_as,
 					first_seen,
 					last_seen,
-					num_pkts,
-					len_pkts,
+					client_num_pkts,
+					server_num_pkts,
+					client_len_pkts,
+					server_len_pkts,
 					ndpi
 					) 
-				VALUES (@src_ip,
+				VALUES (@id,
+					@src_ip,
 					@dst_ip,
 					@src_port,
 					@dst_port,
 					@ipv,
 					@tcp_fingerprint,
+					@client_os,
+					@server_os,
 					@proto,
 					@src_country,
 					@dst_country,
@@ -95,10 +106,18 @@ func (pg *postgres) InsertFlowInfo(ctx context.Context, info FlowInfo) (err erro
 					@dst_as,
 					@first_seen,
 					@last_seen,
-					@num_pkts,
-					@len_pkts,
-					@ndpi
-					)`
+					@client_num_pkts,
+					@server_num_pkts,
+					@client_len_pkts,
+					@server_len_pkts,
+					@ndpi) 
+				ON CONFLICT (id) DO UPDATE
+				SET last_seen = @last_seen,
+					client_num_pkts = @client_num_pkts,
+					server_num_pkts = @server_num_pkts,
+					client_len_pkts = @client_len_pkts,
+					server_len_pkts = @server_len_pkts,
+					ndpi = @ndpi;`
 	dpi, err := json.Marshal(info.Ndpi)
 
 	if err != nil {
@@ -106,12 +125,15 @@ func (pg *postgres) InsertFlowInfo(ctx context.Context, info FlowInfo) (err erro
 	}
 
 	args := pgx.NamedArgs{
+		"id":              info.Id,
 		"src_ip":          info.SrcIp,
 		"dst_ip":          info.DstIp,
 		"src_port":        info.SrcPort,
 		"dst_port":        info.DstPort,
 		"ipv":             info.IpV,
 		"tcp_fingerprint": info.TcpFingerprint,
+		"client_os":       info.ClientOS,
+		"server_os":       info.ServerOS,
 		"proto":           info.Proto,
 		"src_country":     info.SrcCountry,
 		"dst_country":     info.DstCountry,
@@ -119,8 +141,10 @@ func (pg *postgres) InsertFlowInfo(ctx context.Context, info FlowInfo) (err erro
 		"dst_as":          info.DstAS,
 		"first_seen":      info.FirstSeen,
 		"last_seen":       info.LastSeen,
-		"num_pkts":        info.NumPkts,
-		"len_pkts":        info.LenPkts,
+		"client_num_pkts": info.ClientNumPkts,
+		"server_num_pkts": info.ServertNumPkts,
+		"client_len_pkts": info.ClientLenPkts,
+		"server_len_pkts": info.ServerLenPkts,
 		"ndpi":            string(dpi),
 	}
 	_, err = pg.db.Exec(ctx, query, args)
@@ -129,54 +153,6 @@ func (pg *postgres) InsertFlowInfo(ctx context.Context, info FlowInfo) (err erro
 	}
 
 	return nil
-}
-
-func (pg *postgres) UpgradeFlowInfo(ctx context.Context, info FlowInfo, id int) (err error) {
-	query := `UPDATE flow_info SET last_seen = @last_seen,
-					num_pkts = @num_pkts,
-					len_pkts = @len_pkts,
-					ndpi = @ndpi 
-					WHERE id = @id`
-
-	args := pgx.NamedArgs{
-		"last_seen": info.LastSeen,
-		"num_pkts":  info.NumPkts,
-		"len_pkts":  info.LenPkts,
-		"ndpi":      info.Ndpi,
-		"id":        id,
-	}
-
-	_, err = pg.db.Exec(ctx, query, args)
-	if err != nil {
-		return fmt.Errorf("unable to update row: %w", err)
-	}
-
-	return nil
-}
-
-func (pg *postgres) GetFlowID(ctx context.Context, info FlowInfo) int {
-	query := `SELECT id FROM flow_info WHERE src_ip = @src_ip AND
-						dst_ip = @dst_ip AND 
-						src_port = @src_port AND
-						dst_port = @dst_port AND
-						ndpi->>'proto' = @proto`
-	args := pgx.NamedArgs{
-		"src_ip":   info.SrcIp,
-		"dst_ip":   info.DstIp,
-		"src_port": info.SrcPort,
-		"dst_port": info.DstPort,
-		"proto":    info.Ndpi["proto"],
-	}
-
-	row := pg.db.QueryRow(ctx, query, args)
-
-	var id int
-	err := row.Scan(&id)
-	if err != nil {
-		return 0
-	}
-
-	return id
 }
 
 func server(ctx context.Context, endpoint string, num_of_endpoints int, pg *postgres) (err error) {
@@ -190,10 +166,6 @@ func server(ctx context.Context, endpoint string, num_of_endpoints int, pg *post
 		}
 		defer puller.Close()
 
-		err = puller.SetRcvhwm(size_of_queue)
-		if err != nil {
-			return err
-		}
 		zmq_endpoint := fmt.Sprintf("%s:%d", endpoint, default_port)
 		fmt.Println(zmq_endpoint)
 		err = puller.Connect(zmq_endpoint)
@@ -220,23 +192,12 @@ func server(ctx context.Context, endpoint string, num_of_endpoints int, pg *post
 					doneChan <- err
 					return
 				}
-				id := pg.GetFlowID(ctx, info)
 
-				if id != 0 {
-					err = pg.UpgradeFlowInfo(ctx, info, id)
+				err = pg.InsertFlowInfo(ctx, info)
 
-					if err != nil {
-						doneChan <- err
-						return
-					}
-				} else {
-
-					err = pg.InsertFlowInfo(ctx, info)
-
-					if err != nil {
-						doneChan <- err
-						return
-					}
+				if err != nil {
+					doneChan <- err
+					return
 				}
 			}
 		}()

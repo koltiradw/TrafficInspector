@@ -2,6 +2,7 @@
 #include "dpi_worker.h"
 #include "utils.h"
 
+#include <uuid/uuid.h>
 #include <zmq.h>
 
 #include <errno.h>
@@ -22,12 +23,17 @@
 enum IP_TYPE { IPv4 = 4, IPv6 = 6 };
 
 typedef struct {
-    uint64_t num_of_pkts;
-    uint64_t len_of_pkts;
+    uint64_t client_num_of_pkts;
+    uint64_t server_num_of_pkts;
+    uint64_t client_len_of_pkts;
+    uint64_t server_len_of_pkts;
     uint64_t first_seen;
     uint64_t last_seen;
     uint64_t hashval;
 
+    char* client_os;
+    char* server_os;
+    uuid_t uuid;
     enum IP_TYPE l3_type;
 
     union {
@@ -52,6 +58,7 @@ typedef struct {
     uint16_t src_port;
     uint16_t dst_port;
 
+    bool is_src_to_dst;
     uint8_t is_midstream_flow : 1;
     uint8_t flow_fin_ack_seen : 1;
     uint8_t flow_ack_seen     : 1;
@@ -132,6 +139,8 @@ __ndpi_flow_info_free(void* const node) {
     ndpi_flow_info_t* const flow = (ndpi_flow_info_t*)node;
 
     ndpi_flow_free(flow->ndpi_flow);
+    ndpi_free(flow->client_os);
+    ndpi_free(flow->server_os);
     ndpi_free(flow);
 }
 
@@ -457,9 +466,12 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
         flow.hashval += flow.l4_protocol + flow.src_port + flow.dst_port;
     }
 
+    bool is_src_to_dst = true;
+
     hashed_index = flow.hashval % workflow->max_active_flows;
     tree_result = ndpi_tfind(&flow, &workflow->ndpi_flows_active[hashed_index], __ndpi_workflow_node_cmp);
     if (tree_result == NULL) {
+        is_src_to_dst = false;
         /* flow not found in btree: switch src <-> dst and try to find it again */
         const uint32_t orig_src_ip[4] = {flow.ip_tuple.u32.src[0], flow.ip_tuple.u32.src[1], flow.ip_tuple.u32.src[2],
                                          flow.ip_tuple.u32.src[3]};
@@ -498,6 +510,7 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
     }
 
     if (tree_result == NULL) {
+        is_src_to_dst = true;
         /* flow still not found, must be new */
         if (workflow->cur_active_flows == workflow->max_active_flows) {
             return;
@@ -517,6 +530,9 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
         memset(flow_to_process->ndpi_flow, 0, SIZEOF_FLOW_STRUCT);
         flow_to_process->detection_completed = false;
         flow_to_process->ready_to_dump = false;
+        flow_to_process->client_os = NULL;
+        flow_to_process->server_os = NULL;
+        uuid_generate_random(flow_to_process->uuid);
         if (ndpi_tsearch(flow_to_process, &workflow->ndpi_flows_active[hashed_index], __ndpi_workflow_node_cmp)
             == NULL) {
             /* Possible Leak, but should not happen as we'd abort earlier. */
@@ -529,8 +545,14 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
         flow_to_process = *(ndpi_flow_info_t**)tree_result;
     }
 
-    flow_to_process->num_of_pkts++;
-    flow_to_process->len_of_pkts += header->len;
+    if (is_src_to_dst) {
+        flow_to_process->client_num_of_pkts++;
+        flow_to_process->client_len_of_pkts += header->len;
+    } else {
+        flow_to_process->server_num_of_pkts++;
+        flow_to_process->server_len_of_pkts += header->len;
+    }
+
     /* update timestamps, important for timeout handling */
     if (flow_to_process->first_seen == 0) {
         flow_to_process->first_seen = time_ms;
@@ -560,7 +582,7 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
             uint16_t max_num_pkts = (flow_to_process->l4_protocol == IPPROTO_UDP) ? MAX_NUM_OF_UDP_PKTS
                                                                                   : MAX_NUM_OF_TCP_PKTS;
 
-            if (flow_to_process->num_of_pkts > max_num_pkts) {
+            if (flow_to_process->client_num_of_pkts + flow_to_process->server_num_of_pkts > max_num_pkts) {
                 uint8_t proto_guessed = 0;
 
                 flow_to_process->detected_l7_protocol = ndpi_detection_giveup(
@@ -570,6 +592,22 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
                     flow_to_process->detection_completed = false;
                 }
                 flow_to_process->ready_to_dump = true;
+            }
+        }
+        if (flow_to_process->ndpi_flow->tcp.fingerprint) {
+            if (is_src_to_dst) {
+
+                if (!flow_to_process->client_os) {
+                    flow_to_process->client_os = ndpi_strdup(
+                        ndpi_print_os_hint(flow_to_process->ndpi_flow->tcp.os_hint));
+                    flow_to_process->ndpi_flow->tcp.fingerprint = NULL;
+                }
+            } else {
+                if (!flow_to_process->server_os) {
+                    flow_to_process->server_os = ndpi_strdup(
+                        ndpi_print_os_hint(flow_to_process->ndpi_flow->tcp.os_hint));
+                    flow_to_process->ndpi_flow->tcp.fingerprint = NULL;
+                }
             }
         }
     }
@@ -663,15 +701,32 @@ ndpi_process_packet(const uint8_t* args, const struct afpacket_pkthdr* header, c
                 }
             }
         }
+        if (flow_to_process->client_os) {
+            ndpi_serialize_string_string(&workflow->flow_serializer, "client_os", flow_to_process->client_os);
+        }
 
+        if (flow_to_process->server_os) {
+            ndpi_serialize_string_string(&workflow->flow_serializer, "server_os", flow_to_process->server_os);
+        }
+
+        char uuid_str[37];
+        uuid_unparse(flow_to_process->uuid, uuid_str);
+
+        ndpi_serialize_string_string(&workflow->flow_serializer, "uuid", uuid_str);
         ndpi_serialize_string_string(&workflow->flow_serializer, "src_country", src_country);
         ndpi_serialize_string_string(&workflow->flow_serializer, "dst_country", dst_country);
         ndpi_serialize_string_string(&workflow->flow_serializer, "src_as", src_as);
         ndpi_serialize_string_string(&workflow->flow_serializer, "dst_as", dst_as);
         ndpi_serialize_string_string(&workflow->flow_serializer, "first_seen", first_seen);
         ndpi_serialize_string_string(&workflow->flow_serializer, "last_seen", last_seen);
-        ndpi_serialize_string_uint64(&workflow->flow_serializer, "num_pkts", flow_to_process->num_of_pkts);
-        ndpi_serialize_string_uint64(&workflow->flow_serializer, "len_pkts", flow_to_process->len_of_pkts);
+        ndpi_serialize_string_uint64(&workflow->flow_serializer, "client_num_pkts",
+                                     flow_to_process->client_num_of_pkts);
+        ndpi_serialize_string_uint64(&workflow->flow_serializer, "server_num_pkts",
+                                     flow_to_process->server_num_of_pkts);
+        ndpi_serialize_string_uint64(&workflow->flow_serializer, "client_len_pkts",
+                                     flow_to_process->client_len_of_pkts);
+        ndpi_serialize_string_uint64(&workflow->flow_serializer, "server_len_pkts",
+                                     flow_to_process->server_len_of_pkts);
         const char* json_str = ndpi_serializer_get_buffer(&workflow->flow_serializer, &json_str_len);
 
         zmq_send(workflow->socket->pusher, json_str, strlen(json_str), ZMQ_DONTWAIT);
