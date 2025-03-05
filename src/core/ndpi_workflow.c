@@ -285,68 +285,70 @@ serialize_dpi_info(ndpi_workflow_t* workflow, ndpi_flow_info_t* flow) {
 
     if (flow->l3_type == IPv4) {
         if (is_private_ipv4(ntohl(flow->ip_tuple.v4.src))) {
-            memcpy(src_country, local, strlen(local));
-            memcpy(src_as, local, strlen(local));
+            strncpy(src_country, local, strlen(local));
+            strncpy(src_as, local, strlen(local));
         } else {
             inet_ntop(AF_INET, &flow->ip_tuple.v4.src, src_name, sizeof(src_name));
             ndpi_get_geoip_country_continent(workflow->ndpi_struct, src_name, src_country, sizeof(src_name), NULL, 0);
             if (src_country[0] == '\0') {
-                memcpy(src_country, unknown, strlen(unknown));
+                strncpy(src_country, unknown, strlen(unknown));
             }
             ndpi_get_geoip_asn(workflow->ndpi_struct, src_name, &as);
             if (as == 0) {
-                memcpy(src_as, unknown, strlen(unknown));
+                strncpy(src_as, unknown, strlen(unknown));
             } else {
-                ndpi_snprintf(src_as, sizeof(src_as), "AS%lu", as);
+                ndpi_snprintf(src_as, sizeof(src_as), "AS%u", as);
             }
         }
 
         if (is_private_ipv4(ntohl(flow->ip_tuple.v4.dst))) {
-            memcpy(dst_country, local, strlen(local));
-            memcpy(dst_as, local, strlen(local));
+            strncpy(dst_country, local, strlen(local));
+            strncpy(dst_as, local, strlen(local));
         } else {
             inet_ntop(AF_INET, &flow->ip_tuple.v4.dst, dst_name, sizeof(dst_name));
             ndpi_get_geoip_country_continent(workflow->ndpi_struct, dst_name, dst_country, sizeof(dst_name), NULL, 0);
             if (dst_country[0] == '\0') {
-                memcpy(dst_country, unknown, strlen(unknown));
+                strncpy(dst_country, unknown, strlen(unknown));
             }
             ndpi_get_geoip_asn(workflow->ndpi_struct, dst_name, &as);
             if (as == 0) {
-                memcpy(dst_as, unknown, strlen(unknown));
+                strncpy(dst_as, unknown, strlen(unknown));
             } else {
-                ndpi_snprintf(dst_as, sizeof(dst_as), "AS%lu", as);
+                ndpi_snprintf(dst_as, sizeof(dst_as), "AS%u", as);
             }
         }
     } else {
         if (is_private_ipv6(bswap_64(flow->ip_tuple.v6.src[0]))) {
-            memcpy(src_country, local, strlen(local));
+            strncpy(src_country, local, strlen(local));
+            strncpy(src_as, local, strlen(local));
         } else {
             inet_ntop(AF_INET, &flow->ip_tuple.v6.src, src_name, sizeof(src_name));
             ndpi_get_geoip_country_continent(workflow->ndpi_struct, src_name, src_country, sizeof(src_name), NULL, 0);
             if (src_country[0] == '\0') {
-                memcpy(src_country, unknown, strlen(unknown));
+                strncpy(src_country, unknown, strlen(unknown));
             }
             ndpi_get_geoip_asn(workflow->ndpi_struct, src_name, &as);
             if (as == 0) {
-                memcpy(src_as, unknown, strlen(unknown));
+                strncpy(src_as, unknown, strlen(unknown));
             } else {
-                ndpi_snprintf(src_as, sizeof(src_as), "AS%lu", as);
+                ndpi_snprintf(src_as, sizeof(src_as), "AS%u", as);
             }
         }
 
         if (is_private_ipv6(bswap_64(flow->ip_tuple.v6.dst[0]))) {
-            memcpy(dst_country, local, strlen(local));
+            strncpy(dst_country, local, strlen(local));
+            strncpy(dst_as, local, strlen(local));
         } else {
             inet_ntop(AF_INET, &flow->ip_tuple.v6.dst, dst_name, sizeof(dst_name));
             ndpi_get_geoip_country_continent(workflow->ndpi_struct, dst_name, dst_country, sizeof(dst_name), NULL, 0);
             if (dst_country[0] == '\0') {
-                memcpy(dst_country, unknown, strlen(unknown));
+                strncpy(dst_country, unknown, strlen(unknown));
             }
             ndpi_get_geoip_asn(workflow->ndpi_struct, dst_name, &as);
             if (as == 0) {
-                memcpy(dst_as, unknown, strlen(unknown));
+                strncpy(dst_as, unknown, strlen(unknown));
             } else {
-                ndpi_snprintf(dst_as, sizeof(dst_as), "AS%lu", as);
+                ndpi_snprintf(dst_as, sizeof(dst_as), "AS%u", as);
             }
         }
     }
