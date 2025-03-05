@@ -12,7 +12,6 @@
 
 typedef struct {
     afpacket_t* handle;
-    ndpi_serializer flow_serializer;
     zmq_log_t* socket;
     uint64_t detected_flow_protocols;
 

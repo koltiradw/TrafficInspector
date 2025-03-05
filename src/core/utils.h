@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
 
 static inline bool
@@ -24,5 +25,9 @@ is_private_ipv6(uint64_t ip_addr) {
 }
 
 void convert_timestamp_to_datetime(const time_t timestamp, char* datetime, size_t len);
+
+void mac_to_string(const uint8_t* mac, char* str);
+
+uint64_t get_current_time_ms();
 
 #endif /* __UTILS__ */
