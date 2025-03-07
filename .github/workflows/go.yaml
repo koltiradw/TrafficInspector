@@ -28,8 +28,13 @@ jobs:
         run: |
             sudo apt-get update
             sudo apt-get install libzmq3-dev
-      - name: lint
+      - name: lint collector
         uses: golangci/golangci-lint-action@v6.5.0
         with:
           version: latest
           working-directory: ./collector
+      - name: lint api
+        uses: golangci/golangci-lint-action@v6.5.0
+        with:
+          version: latest
+          working-directory: ./api

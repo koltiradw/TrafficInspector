@@ -1,6 +1,7 @@
 .vscode/*
 test.cc
 collector/collector
+api/api
 *.o
 test
 test_conf.ini
