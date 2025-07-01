@@ -9,7 +9,9 @@
 	align-items: center;
 
 	background-color: var(--bg);
-	padding-block: 2.5rem 2rem;
+
+	/* needed to bound drawer height and width to page-content-wrapper  */
+	position: relative;
 }
 
 .page-content-wrapper {
@@ -19,9 +21,7 @@
 	height: 100%;
 	max-height: 100%;
 
-	padding: 2rem;
-
-	/* needed to bound drawer height and width to page-content-wrapper  */
-	position: relative;
+	padding-inline: 2rem;
+	padding-block: 4rem;
 }
 

@@ -117,6 +117,21 @@ const theme: ThemeOptions = {
 		body2: { fontFamily: FONT_FAMILY },
 	},
 	components: {
+		MuiButton: {
+			styleOverrides: {
+				root: {
+					transition: "all 0.7s ease-in",
+					"&.Mui-disabled": {
+						color: "var(--disabled)",
+						border: "1px solid var(--disabled)",
+					},
+				},
+			},
+			variants: [
+				{ props: { variant: "contained" }, style: { color: "var(--nav-bg)", border: "1px solid var(--accent)" } },
+				{ props: { variant: "outlined" }, style: { color: "var(--accent)", border: "1px solid var(--accent)" } },
+			],
+		},
 		MuiContainer: {
 			styleOverrides: {
 				root: {

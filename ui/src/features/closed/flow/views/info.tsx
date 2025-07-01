@@ -14,7 +14,7 @@ import { ByteRatioBar } from "../ui/byte-ratio-bar";
 import type { Flow, FlowDetailed } from "../model";
 
 interface Props {
-	flow_id: Flow["id"] | undefined;
+	flow_id: Flow["id"] | null;
 }
 
 const Info: FC<Props> = ({ flow_id }) => {
@@ -39,7 +39,7 @@ const Info: FC<Props> = ({ flow_id }) => {
 	useEffect(() => {
 		let ctrl: AbortController;
 
-		if (flow_id !== undefined) {
+		if (flow_id !== null) {
 			// при смене flow_id на undefined будет продолжать отображаться инфо о последнем флоу
 			ctrl = new AbortController();
 			doFetch(flow_id, ctrl.signal);
@@ -61,8 +61,7 @@ const Info: FC<Props> = ({ flow_id }) => {
 				</Typography>
 			)}
 			{!isLoading && error === null && data !== null && (
-				<div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", paddingBlock: "2rem" }}>
-					{/* Connection Flow Section */}
+				<div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", paddingBottom: "1.5rem" }}>
 					<ByteRatioBar source={data.src_len_pkts} destination={data.dst_len_pkts} />
 
 					<TcpIpLayers flow={data} />
