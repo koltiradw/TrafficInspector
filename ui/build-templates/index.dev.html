@@ -15,25 +15,26 @@
 		<div id="root"></div>
 
 		<script>
-			new EventSource("/esbuild").addEventListener("change", (e) => {
-				const { added, removed, updated } = JSON.parse(e.data);
+			(() => {
+				const evSrc = new EventSource("/esbuild");
+				evSrc.addEventListener("update", () => {
+					const links = document.getElementsByTagName("link");
+					for (const link of links) {
+						if (link.rel === "stylesheet") {
+							const reg = /^.+(?=\\?version)/g.exec(link.href);
+							let href;
+							if (reg === null) {
+								href = link.href;
+							} else {
+								href = reg[0];
+							}
 
-				if (!added.length && !removed.length && updated.length === 1) {
-					for (const link of document.getElementsByTagName("link")) {
-						const url = new URL(link.href);
-
-						if (url.host === location.host && url.pathname === updated[0]) {
-							const next = link.cloneNode();
-							next.href = updated[0] + "?" + Math.random().toString(36).slice(2);
-							next.onload = () => link.remove();
-							link.parentNode.insertBefore(next, link.nextSibling);
-							return;
+							link.href = href + "?version=" + new Date().valueOf();
 						}
 					}
-				}
-
-				location.reload();
-			});
+				});
+				evSrc.addEventListener("reload", () => location.reload());
+			})();
 		</script>
 		<script src="./index.js"></script>
 	</body>
