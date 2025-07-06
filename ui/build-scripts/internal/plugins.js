@@ -33,13 +33,13 @@ export const copy = (filepaths, log) => ({
 					});
 
 					if (log) {
-						log(`📄 Copied ${from} to ${to}`, "info");
+						log(`Copied ${from} to ${to}`, "📄", "info");
 					} else {
 						console.log(`📄 Copied ${from} to ${to}`);
 					}
 				} catch (err) {
 					if (log) {
-						log("❌ Failed to copy: " + String(err), "error");
+						log("Failed to copy: " + String(err), "❌", "error");
 					} else {
 						console.error("❌ Failed to copy:", err);
 					}

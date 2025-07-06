@@ -5,56 +5,48 @@ import fs from "node:fs";
 import path from "node:path";
 import http from "node:http";
 
-import { copy } from "./build-plugins.js";
+import { copy } from "./internal/plugins.js";
+import { debounce } from "./internal/misc.js";
+import { Logger } from "./internal/logger.js";
+import { ArgsParser } from "./internal/args.js";
 
 const connections = new Set();
 const changedFiles = new Set();
 
-const debounce = (cb, timeout, instantCb) => {
-	let lastCallArgs;
-	let timeoutID;
-
-	return (...args) => {
-		lastCallArgs = args;
-		if (timeoutID) {
-			clearTimeout(timeoutID);
-		}
-
-		timeoutID = setTimeout(cb, timeout, ...lastCallArgs);
-		instantCb?.(...lastCallArgs);
-	};
-};
-
-const log = (msg, icon = "", sev = "info") => {
-	let str = "[dev server]\t";
-
-	if (icon.length > 0) {
-		str += `${icon} ${msg}`;
-	} else {
-		str += msg;
+let logger = new Logger("info");
+const argsParser = new ArgsParser(
+	[
+		{ name: "log-level", envName: "LOG_LEVEL", desc: "Logging level (matches `window.console` levels)" },
+		{ name: "help", desc: "Help message", flag: true },
+	],
+	{
+		title: "Development Server (with hot-reload)",
+		usage: "node dev.js --help --log-level=<>",
 	}
+);
 
-	console[sev](str);
-};
+const args = argsParser.parse(process.argv0.slice(1));
 
-const logRank = {
-	debug: 0,
-	info: 1,
-	log: 1,
-	table: 1,
-	warning: 2,
-	error: 3,
-};
+if (args.help) {
+	argsParser.help();
+	process.exit(0);
+}
 
-const makeLogger =
-	(logLevel) =>
-	(msg, icon = "", sev = "info") => {
-		if (logRank[logLevel] <= logRank[sev]) {
-			log(msg, icon, sev);
-		}
-	};
+const { errors, warnings } = argsParser.validate(args);
 
-const logger = makeLogger("info");
+if (errors.length > 0) {
+	errors.forEach((error) => logger.log(error.msg, "❌", "error"));
+	process.exit(1);
+}
+
+if (warnings.length > 0) {
+	warnings.forEach((warning) => logger.log(warning.msg, "❗", "warning"));
+}
+
+logger.log("Accepted following params:");
+console.table(args);
+
+logger = new Logger(args["log-level"]);
 
 // Start esbuild's server on a random local port
 let ctx = await esbuild.context({
@@ -76,7 +68,7 @@ let ctx = await esbuild.context({
 				{ from: "build-templates/index.dev.html", to: "dev/index.html" },
 				{ from: "assets", to: "dev/assets" },
 			],
-			(msg, level) => logger(`[copy-plugin]\t${msg}`, "", level)
+			(msg, icon, level) => logger.log(`[copy-plugin]\t${msg}`, icon, level)
 		),
 		CssModulesPlugin({
 			inject: false,
@@ -105,22 +97,24 @@ const getContentType = (ext) => {
 
 const onFileChange = async () => {
 	await ctx.cancel();
-	logger("changed files: " + String(changedFiles));
-	logger("rebuiliding...", "⌛");
+	logger.log("changed files: " + String(changedFiles), "📄", "debug");
+	logger.log("rebuiliding...", "🔁");
 
 	try {
 		await this.ctx.rebuild();
 	} catch {
 		// empty handle
 		// https://github.com/evanw/esbuild/issues/4218
+		logger.log("build canceled", "❗", "info");
 	}
-	logger("build complete!", "☑");
+
+	logger.log("build complete!", "✅");
 	let isCssOnly = Array.from(changedFiles).every((file) => file.endsWith(".css"));
 	const event = isCssOnly ? "update" : "reload";
 
 	changedFiles.clear();
 
-	logger("sending notification to connected clients...", "⌛");
+	logger.log("sending notification to connected clients...", "⌛", "debug");
 	connections.forEach((_res) => {
 		_res.write(`event: ${event}\n`);
 		_res.write("data:\n\n"); // SSE spec requires a `data` field to trigger an event disptach in browser
@@ -134,18 +128,18 @@ const onFileChange = async () => {
 const debouncedFileChangeCb = debounce(onFileChange, 500, (_, file) => changedFiles.add(file));
 const ctrlFileWatch = new AbortController();
 
-logger("building project...", "⌛");
-const res = await ctx.rebuild();
-logger("project built!", "☑");
+logger.log("building project...", "⌛");
+await ctx.rebuild();
+logger.log("project built!", "✅");
 
 fs.watch(WATCH_DIR, { recursive: true, signal: ctrlFileWatch.signal }, debouncedFileChangeCb);
-logger("watching for changes at: " + WATCH_DIR, "🔎");
+logger.log("watching for changes at: " + WATCH_DIR, "🔎");
 
 // Then start a proxy server on port 3000
 const server = http.createServer();
 server
 	.on("request", (req, res) => {
-		logger("requested " + req.url, undefined, "debug");
+		logger.log("requested " + req.url, undefined, "debug");
 
 		if (/^(\\|\/)esbuild/.test(req.url)) {
 			res.writeHead(200, {
@@ -200,7 +194,7 @@ server
 		});
 	})
 	.listen(3000, () => {
-		logger("proxy server running at http://localhost:3000", "✅");
+		logger.log("proxy server running at http://localhost:3000", "✅");
 	});
 
 process.on("SIGINT", () => {
