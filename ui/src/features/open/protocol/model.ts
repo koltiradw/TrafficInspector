@@ -1,1 +1,1 @@
-export type Protocol = string;
+export type ENUM = "DNS" | "TCP" | "";

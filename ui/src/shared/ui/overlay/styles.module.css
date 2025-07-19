@@ -23,11 +23,11 @@
 	backdrop-filter: blur(4px);
 	cursor: pointer;
 
-	flex: 0 0 5%;
+	flex: auto; /* default value */
 }
 
 .overlay {
-	flex: 1 0 95%;
+	flex: 95%; /* default value */
 	display: block;
 
 	width: 100%;

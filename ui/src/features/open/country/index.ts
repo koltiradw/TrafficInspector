@@ -1,10 +1,14 @@
 import Top from "./views/top";
 import Flag from "./views/flag";
+import Select from "./views/select";
 
-import type { CountryCode } from "./model";
+import list from "./list";
+import type { ENUM } from "./model";
 
 export default {
+	list,
 	view: {
+		select: Select,
 		flag: Flag,
 		chart: {
 			top: Top,
@@ -13,5 +17,5 @@ export default {
 };
 
 export interface Model {
-	enum: CountryCode;
-};
+	enum: ENUM;
+}

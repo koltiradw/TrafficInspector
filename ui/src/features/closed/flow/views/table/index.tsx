@@ -1,15 +1,15 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "wouter";
 
-import Typography from "@mui/material/Typography";
-import { DataGrid, DataGridProps, GridColDef } from "@mui/x-data-grid";
+import { DataGrid, DataGridProps, GridColDef, GridColumnGroupingModel, GridLeafColumn } from "@mui/x-data-grid";
 
 import { $features } from "@features";
 
-import { getList, type TablePagination } from "../../endpoint/query";
-import type { Flow } from "../../model";
-
 import Toolbar from "./toolbar";
+import Pagination from "./footer";
+import { getList, type TablePagination } from "../../endpoint/query";
+
+import type { Flow } from "../../model";
 
 const columns: GridColDef<Flow>[] = [
 	{
@@ -30,60 +30,66 @@ const columns: GridColDef<Flow>[] = [
 		minWidth: 100,
 	},
 	{
-		field: "src_ip",
-		headerName: "Source",
-		headerAlign: "center",
-		align: "left",
-		flex: 1,
-		minWidth: 100,
-		display: "flex",
-		renderCell: (params) => (
-			<div
-				style={{
-					display: "inline-flex",
-					justifyContent: "center",
-					alignItems: "center",
-					gap: "0.4rem",
-				}}
-			>
-				<$features.open.country.view.flag code={params.row.src_country} size='sm' />
-				<Typography variant='tableCell'>
-					{params.row.src_ip}:{params.row.src_port}
-				</Typography>
-			</div>
-		),
-	},
-	{
-		field: "dest_ip",
-		headerName: "Destination",
-		headerAlign: "center",
-		align: "left",
-		flex: 1,
-		minWidth: 100,
-		display: "flex",
-		renderCell: (params) => (
-			<div
-				style={{
-					display: "inline-flex",
-					justifyContent: "center",
-					alignItems: "center",
-					gap: "0.4rem",
-				}}
-			>
-				<$features.open.country.view.flag code={params.row.dst_country} size='sm' />
-				<Typography variant='tableCell'>
-					{params.row.dst_ip}:{params.row.dst_port}
-				</Typography>
-			</div>
-		),
-	},
-	{
 		field: "protocol",
 		headerName: "Protocol",
 		headerAlign: "center",
 		align: "left",
 		flex: 1,
 		minWidth: 100,
+	},
+	{
+		field: "src_country",
+		headerName: "Country",
+		headerAlign: "center",
+		align: "left",
+		flex: 1,
+		minWidth: 60,
+		renderCell: (params) => <$features.open.country.view.flag code={params.row.src_country} size='sm' />,
+	},
+	{
+		field: "src_ip",
+		headerName: "IP",
+		headerAlign: "center",
+		align: "left",
+		flex: 1,
+		minWidth: 100,
+		display: "flex",
+	},
+	{
+		field: "src_port",
+		headerName: "Port ",
+		headerAlign: "center",
+		align: "left",
+		flex: 1,
+		minWidth: 100,
+		display: "flex",
+	},
+	{
+		field: "dst_country",
+		headerName: "Country",
+		headerAlign: "center",
+		align: "left",
+		flex: 1,
+		minWidth: 60,
+		renderCell: (params) => <$features.open.country.view.flag code={params.row.dst_country} size='sm' />,
+	},
+	{
+		field: "dst_ip",
+		headerName: "IP",
+		headerAlign: "center",
+		align: "left",
+		flex: 1,
+		minWidth: 100,
+		display: "flex",
+	},
+	{
+		field: "dst_port",
+		headerName: "Port ",
+		headerAlign: "center",
+		align: "left",
+		flex: 1,
+		minWidth: 100,
+		display: "flex",
 	},
 	{
 		field: "category",
@@ -93,6 +99,21 @@ const columns: GridColDef<Flow>[] = [
 		flex: 1,
 		minWidth: 100,
 		renderCell: (params) => <$features.open.category.view.badge category={params.row.category} />,
+	},
+];
+
+const columnGroupingModel: GridColumnGroupingModel = [
+	{
+		groupId: "source",
+		headerName: "Source",
+		headerAlign: "center",
+		children: [{ field: "src_country" }, { field: "src_ip" }, , { field: "src_port" }] as GridLeafColumn[],
+	},
+	{
+		groupId: "destination",
+		headerName: "Destination ",
+		headerAlign: "center",
+		children: [{ field: "dst_country" }, { field: "dst_ip" }, , { field: "dst_port" }] as GridLeafColumn[],
 	},
 ];
 
@@ -113,6 +134,7 @@ const Table = () => {
 	const currentPage = Number(searchParams.get("page") ?? defaultPagination.current_page);
 	const limit = Number(searchParams.get("limit") ?? defaultPagination.limit);
 	const flowID = searchParams.get("id");
+	const filterID = searchParams.get("filterID");
 
 	const [flows, setFlows] = useState<Flow[]>([]);
 
@@ -209,6 +231,7 @@ const Table = () => {
 					/>
 				),
 				baseLinearProgress: () => null,
+				pagination: Pagination,
 			}}
 			sx={{
 				"& .MuiDataGrid-columnHeader": {
@@ -232,6 +255,9 @@ const Table = () => {
 				"& .MuiDataGrid-row:nth-of-type(odd):hover": {
 					backgroundColor: "hsla(248, 46%, 60%, 0.6)",
 				},
+				"& .MuiDataGrid-footerContainer": {
+					height: "72px",
+				},
 			}}
 			/* data */
 			columns={columns}
@@ -245,6 +271,7 @@ const Table = () => {
 			paginationModel={{ page: currentPage - 1, pageSize: limit }}
 			onPaginationModelChange={handlePagination}
 			/* configuration */
+			columnGroupingModel={columnGroupingModel}
 			disableColumnResize
 			autosizeOnMount
 			autosizeOptions={{ expand: true, disableColumnVirtualization: true, includeHeaders: true }}

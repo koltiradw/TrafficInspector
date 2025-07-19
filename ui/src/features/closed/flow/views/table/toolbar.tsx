@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 
+import { Toolbar } from "@mui/x-data-grid";
+
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import LinearProgress from "@mui/material/LinearProgress";
+
 import UpdateOutlinedIcon from "@mui/icons-material/UpdateOutlined";
 import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
-
-import { Toolbar, ToolbarButton } from "@mui/x-data-grid";
-import { Typography } from "@mui/material";
 
 interface Props {
 	onStartUpdate: VoidFunction;
@@ -48,21 +49,7 @@ export default function CustomToolbar({
 	return (
 		<Toolbar>
 			<Box width='100%' display='flex' alignItems='center' justifyContent='space-between' paddingInline={1} gap={4}>
-				<Typography fontSize='1.25rem' fontWeight={500} sx={{ flex: "0 0 50%" }}>
-					Network Flows
-				</Typography>
-				<Box display='flex' alignItems='center' justifyContent='end' gap={2} sx={{ flex: "1 0 auto" }}>
-					<Typography display='block' align='right' fontSize='1rem' fontStyle={updateInProgress ? "normal" : "italic"}>
-						{updateInProgress && "Loading..."}
-						{!updateInProgress && startCountDown && `Updating in ${timeLeft} seconds`}
-					</Typography>
-					{(startCountDown || updateInProgress) && (
-						<LinearProgress
-							sx={{ flex: "1 0 auto" }}
-							variant={updateInProgress ? "indeterminate" : "determinate"}
-							value={updateInProgress ? undefined : progress}
-						/>
-					)}
+				<Box display='flex' alignItems='center' justifyContent='start' gap={2} sx={{ flex: "1 0 auto" }}>
 					{startCountDown && (
 						<Button
 							disabled={updateInProgress}
@@ -95,6 +82,17 @@ export default function CustomToolbar({
 						Update
 					</Button>
 				</Box>
+				<Typography display='block' align='right' fontSize='1rem' fontStyle={updateInProgress ? "normal" : "italic"}>
+					{updateInProgress && "Loading..."}
+					{!updateInProgress && startCountDown && `Updating in ${timeLeft} seconds`}
+				</Typography>
+				{(startCountDown || updateInProgress) && (
+					<LinearProgress
+						sx={{ flex: "1 0 auto" }}
+						variant={updateInProgress ? "indeterminate" : "determinate"}
+						value={updateInProgress ? undefined : progress}
+					/>
+				)}
 			</Box>
 		</Toolbar>
 	);

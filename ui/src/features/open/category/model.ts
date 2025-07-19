@@ -1,4 +1,4 @@
-export type Category =
+export type ENUM =
 	| ""
 	| "Unspecified"
 	| "Media"
@@ -30,3 +30,4 @@ export type Category =
 	| "VirtAssistant"
 	| "Cybersecurity"
 	| "AdultContent";
+
