@@ -32,14 +32,14 @@ export default function useFetch<Response, Default = undefined>(
 		let intervalId: NodeJS.Timeout;
 
 		if (opts.interval !== undefined) {
-			intervalId = setInterval(() => doFetch(ctrl.signal), opts.interval);
+			intervalId = setInterval(doFetch, opts.interval, ctrl.signal);
 		}
 
 		doFetch(ctrl.signal);
 
 		return () => {
 			ctrl.abort();
-			intervalId && clearInterval(intervalId);
+			if (intervalId) clearInterval(intervalId);
 		};
 	}, [...deps, opts.interval]);
 

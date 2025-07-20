@@ -2,7 +2,8 @@ import React from "react";
 import type { FC } from "react";
 
 import Chip from "@mui/material/Chip";
-import { HELPERS_STYLE_IS_COLOR_LIGHT } from "@shared/helpers/style";
+
+import { $helpers } from "@shared";
 
 import { color } from "./helpers";
 import type { Category } from "./model";
@@ -16,9 +17,7 @@ export const Inline: FC<Props> = ({ category }) => (
 		label={category}
 		sx={{
 			backgroundColor: color[category],
-			color: HELPERS_STYLE_IS_COLOR_LIGHT(color[category])
-				? "#333333"
-				: "#FAF0E6",
+			color: $helpers.style.isColorLight(color[category]) ? "#333333" : "#FAF0E6",
 			fontWeight: "bold",
 		}}
 	/>

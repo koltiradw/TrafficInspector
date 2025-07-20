@@ -1,11 +1,12 @@
 import * as esbuild from "esbuild";
 import CssModulesPlugin from "esbuild-css-modules-plugin";
 
-import { copy } from "./build-plugins.js";
+import { copy } from "./internal/plugins.js";
 
 await esbuild.build({
 	format: "esm",
 	platform: "browser",
+	logLevel: "info",
 	bundle: true,
 	minify: true,
 	outfile: "build/index.js",

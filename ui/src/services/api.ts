@@ -1,5 +1,5 @@
 import ky from "ky";
-import type { KyInstance, KyResponse, Input, Options } from "ky";
+import type { KyResponse, Input, Options } from "ky";
 
 import type { AnyObject } from "@shared/helpers/types";
 

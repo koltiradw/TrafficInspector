@@ -4,57 +4,61 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "node build-scripts/dev.js",
-		"build": "node build-scripts/build.js",
-		"lint": "eslint"
+		"build:dev": "node build-scripts/dev.js",
+		"build:prod": "node build-scripts/build.js",
+		"test:types": "tsc --noEmit",
+		"test:lint": "eslint",
+		"test:lint-perf": "export TIMING=1 || set TIMING=1&& npm run test:lint",
+		"submit": "concurrently --success all --names esbuild,tsc,eslint --pad-prefix --prefix-colors yellow,blue,magenta --group \"npm run build:prod\" \"npm run test:types\" \"npm run test:lint\""
 	},
 	"dependencies": {
-		"@emotion/react": "^11.14.0",
-		"@emotion/styled": "^11.14.0",
-		"@mui/icons-material": "^7.0.2",
-		"@mui/material": "^7.0.2",
-		"@nivo/bar": "^0.93.0",
-		"@nivo/core": "^0.93.0",
-		"@nivo/line": "^0.93.0",
-		"@nivo/pie": "^0.93.0",
-		"ky": "^1.8.1",
-		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
-		"reactflow": "^11.11.4",
-		"wouter": "^3.7.0"
+		"@emotion/react": "11.14.0",
+		"@emotion/styled": "11.14.0",
+		"@mui/icons-material": "7.0.2",
+		"@mui/material": "7.0.2",
+		"@nivo/bar": "0.93.0",
+		"@nivo/core": "0.93.0",
+		"@nivo/line": "0.93.0",
+		"@nivo/pie": "0.93.0",
+		"ky": "1.8.1",
+		"react": "19.1.0",
+		"react-dom": "19.1.0",
+		"reactflow": "11.11.4",
+		"wouter": "3.7.0"
 	},
 	"devDependencies": {
-		"@eslint/eslintrc": "^3",
-		"@eslint/js": "^9.24.0",
-		"@types/eslint__js": "^8.42.3",
-		"@types/node": "^20",
-		"@types/react": "^19",
-		"@types/react-dom": "^19",
-		"esbuild": "0.25.2",
-		"esbuild-css-modules-plugin": "^3.1.4",
-		"eslint": "^9",
-		"eslint-plugin-jsx-a11y": "^6.10.2",
-		"eslint-plugin-react": "^7.37.5",
-		"fs-extra": "^11.3.0",
+		"@eslint/eslintrc": "3",
+		"@eslint/js": "9.24.0",
+		"@types/eslint__js": "8.42.3",
+		"@types/node": "20",
+		"@types/react": "19.1",
+		"@types/react-dom": "19.1",
+		"concurrently": "9.2.0",
+		"esbuild": "0.25.8",
+		"esbuild-css-modules-plugin": "3.1.4",
+		"eslint": "9",
+		"eslint-plugin-jsx-a11y": "6.10.2",
+		"eslint-plugin-react": "7.37.5",
+		"fs-extra": "11.3.0",
 		"typescript": "5.5",
-		"typescript-eslint": "^8.30.1"
+		"typescript-eslint": "8.30.1"
 	},
 	"overrides": {
 		"@react-spring/core": {
-			"react": "^19.0.0",
-			"react-dom": "^19.0.0"
+			"react": "19.1.0",
+			"react-dom": "19.1.0"
 		},
 		"@react-spring/web": {
-			"react": "^19.0.0",
-			"react-dom": "^19.0.0"
+			"react": "19.1.0",
+			"react-dom": "19.1.0"
 		},
 		"@react-spring/shared": {
-			"react": "^19.0.0",
-			"react-dom": "^19.0.0"
+			"react": "19.1.0",
+			"react-dom": "19.1.0"
 		},
 		"@react-spring/animated": {
-			"react": "^19.0.0",
-			"react-dom": "^19.0.0"
+			"react": "19.1.0",
+			"react-dom": "19.1.0"
 		}
 	}
 }

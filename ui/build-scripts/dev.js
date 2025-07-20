@@ -52,6 +52,7 @@ logger = new Logger(args["log-level"]);
 let ctx = await esbuild.context({
 	format: "esm",
 	platform: "browser",
+	logLevel: "info",
 	bundle: true,
 	minify: false,
 	outfile: "dev/index.js",
@@ -117,7 +118,7 @@ const onFileChange = async () => {
 	logger.log("sending notification to connected clients...", "⌛", "debug");
 	connections.forEach((_res) => {
 		_res.write(`event: ${event}\n`);
-		_res.write("data:\n\n"); // SSE spec requires a `data` field to trigger an event disptach in browser
+		_res.write("data:\n\n"); // SSE spec requires a `data` field to trigger an event dispatch in browser
 	});
 
 	if (event === "reload") {
@@ -125,7 +126,7 @@ const onFileChange = async () => {
 	}
 };
 
-const debouncedFileChangeCb = debounce(onFileChange, 500, (_, file) => changedFiles.add(file));
+const debouncedFileChangeCb = debounce(onFileChange, 1000, (_, file) => changedFiles.add(file));
 const ctrlFileWatch = new AbortController();
 
 logger.log("building project...", "⌛");

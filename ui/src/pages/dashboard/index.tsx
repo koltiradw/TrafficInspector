@@ -5,17 +5,6 @@ import PageWrapper from "@layout/page";
 
 import styles from "./styles.module.css";
 
-const toc = [
-	{ label: "Total", id: "total", level: 1 },
-	{ label: "Total Protocols", id: "protocols", level: 1 },
-	{ label: "Total Categories", id: "categories", level: 1 },
-	{ label: "Total IP Addresses", id: "ip", level: 1 },
-	{ label: "Total Countries", id: "countries", level: 1 },
-	{ label: "Top ASN", id: "asn", level: 1 },
-	{ label: "Top OS", id: "os", level: 1 },
-	{ label: "Top L4 Protocols", id: "l4", level: 1 },
-];
-
 const Dashboard = () => {
 	return (
 		<PageWrapper heading='Dashboard'>

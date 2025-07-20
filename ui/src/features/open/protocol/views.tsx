@@ -4,22 +4,14 @@ import type { FC } from "react";
 import { Box, Grid, Typography, Chip } from "@mui/material";
 import { Security as SecurityIcon } from "@mui/icons-material";
 
-import { BlockHeader } from "@shared/ui/block-header";
-
+import { $ui } from "@shared";
 import { COLORS } from "@layout/theme";
-
-import type { FEATURE_FLOW_MODEL } from "@features/closed/flow";
+import type { Features } from "@features";
 
 interface Props {
 	details: Pick<
-		FEATURE_FLOW_MODEL["detailed"]["ndpi"],
-		| "breed"
-		| "proto"
-		| "category"
-		| "confidence"
-		| "encrypted"
-		| "hostname"
-		| "domainame"
+		Features["closed"]["flow"]["detailed"]["ndpi"],
+		"breed" | "proto" | "category" | "confidence" | "encrypted" | "hostname" | "domainame"
 	>;
 }
 
@@ -36,7 +28,7 @@ export const Info: FC<Props> = ({ details }) => (
 			border: "1px solid var(--disabled)",
 		}}
 	>
-		<BlockHeader icon={SecurityIcon} title="Protocol Analysis" />
+		<$ui.blockHeader icon={SecurityIcon} title='Protocol Analysis' />
 
 		<Grid
 			container
@@ -55,12 +47,12 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Encrypted
 				</Typography>
 				<Chip
 					label={details.encrypted ? "Yes" : "No"}
-					size="small"
+					size='small'
 					color={details.encrypted ? "success" : "error"}
 					style={{
 						alignSelf: "start",
@@ -78,19 +70,18 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Protocol
 				</Typography>
 				<Chip
 					label={details.proto}
-					size="small"
+					size='small'
 					color={details.proto === "Unknown" ? "error" : "primary"}
 					style={{
 						alignSelf: "start",
 						paddingInline: "1.25rem",
 						width: "fit-content",
-						backgroundColor:
-							details.proto === "Unknown" ? COLORS.error : undefined,
+						backgroundColor: details.proto === "Unknown" ? COLORS.error : undefined,
 						color: COLORS.white,
 					}}
 				/>
@@ -104,11 +95,11 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Breed
 				</Typography>
 				<Typography
-					variant="base"
+					variant='base'
 					noWrap
 					style={{
 						alignSelf: "start",
@@ -128,11 +119,11 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Category
 				</Typography>
 				<Typography
-					variant="base"
+					variant='base'
 					noWrap
 					style={{
 						alignSelf: "start",
@@ -152,11 +143,11 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Confidence
 				</Typography>
 				<Typography
-					variant="base"
+					variant='base'
 					noWrap
 					style={{
 						alignSelf: "start",
@@ -164,9 +155,7 @@ export const Info: FC<Props> = ({ details }) => (
 						height: "100%",
 					}}
 				>
-					{details.confidence === undefined
-						? "-"
-						: Object.values(details.confidence)[0]}
+					{details.confidence === undefined ? "-" : Object.values(details.confidence)[0]}
 				</Typography>
 			</div>
 
@@ -178,11 +167,11 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Hostname
 				</Typography>
 				<Typography
-					variant="base"
+					variant='base'
 					noWrap
 					style={{
 						alignSelf: "start",
@@ -203,11 +192,11 @@ export const Info: FC<Props> = ({ details }) => (
 					gap: "1.25rem",
 				}}
 			>
-				<Typography style={{ alignSelf: "start" }} variant="baseXl">
+				<Typography style={{ alignSelf: "start" }} variant='baseXl'>
 					Domain
 				</Typography>
 				<Typography
-					variant="base"
+					variant='base'
 					noWrap
 					style={{
 						alignSelf: "start",
