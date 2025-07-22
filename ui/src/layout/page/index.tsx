@@ -12,7 +12,7 @@ type Props = PropsWithChildren<ComponentProps<"div">> & {
 
 const Page: FC<Props> = ({ heading, className, children, ...props }) => (
 	<$ui.scrollable {...props} className={clsx(className, styles["page-container"])}>
-		<$ui.pageHeader>{heading}</$ui.pageHeader>
+		{/* <$ui.pageHeader>{heading}</$ui.pageHeader> */}
 		<div className={styles["page-content-wrapper"]}>{children}</div>
 	</$ui.scrollable>
 );

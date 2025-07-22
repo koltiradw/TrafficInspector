@@ -7,10 +7,10 @@ export interface Flow {
 	dst_ip: string;
 	src_port: number;
 	dst_port: number;
-	src_country: Features['open']['country']['enum'];
-	dst_country: Features['open']['country']['enum'];
-	protocol: Features['open']['protocol']['enum'];
-	category: Features['open']['category']['enum'];
+	src_country: Features["open"]["country"]["enum"];
+	dst_country: Features["open"]["country"]["enum"];
+	protocol: Features["open"]["protocol"]["enum"];
+	category: Features["open"]["category"]["enum"];
 }
 
 interface FlowRisk {
@@ -31,7 +31,7 @@ export interface FlowDetailed extends Flow {
 	src_os: string;
 	dst_os: string;
 	// TODO: proto? Flow['protocol']?
-	proto: Features['open']['protocol']['enum'];
+	proto: Features["open"]["protocol"]["enum"];
 	src_as: string;
 	dst_as: string;
 	first_seen: string;
@@ -41,8 +41,8 @@ export interface FlowDetailed extends Flow {
 	src_len_pkts: number;
 	dst_len_pkts: number;
 	ndpi: {
-		tls: Features['open']['protocol']['tls'];
-		dns: Features['open']['protocol']['dns'];
+		tls: Features["open"]["protocol"]["tls"];
+		dns: Features["open"]["protocol"]["dns"];
 		breed: string;
 		proto: string;
 		category: string;
@@ -57,3 +57,10 @@ export interface FlowDetailed extends Flow {
 		proto_by_ip_id: number;
 	};
 }
+
+export interface Filter {
+	name: string;
+	id: string;
+	body: Record<Exclude<keyof Flow, "last_seen" | "id">, string | number | undefined>;
+}
+
