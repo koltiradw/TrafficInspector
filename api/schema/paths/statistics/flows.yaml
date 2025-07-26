@@ -1,0 +1,39 @@
+get:
+  operationId: get-flowbased-statistics
+  summary: Return flows statistics
+  x-implemented: false
+  description: ⚠️ This endpoint is not yet implemented
+  x-tags:
+    - flows
+    - statistics
+  parameters:
+    - name: field
+      in: query
+      required: true
+      schema:
+        $ref: '../../components/schemas/statistics/field.yaml'
+    - name: filter
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Filter `field`
+    - name: aggregate
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [1h, 1d, 3d, 7d, 1m]
+      description: |
+        Aggregate data by specified period.
+        Required if `breakdown_by` is not provided. Mutually exclusive with `breakdown_by`.
+    - name: breakdown_by
+      in: query
+      required: false
+      schema:
+        $ref: '../../components/schemas/statistics/field.yaml'
+      description: |
+        Break down data by this field.
+        Required if `aggregate` is not provided. Mutually exclusive with `aggregate`.
+      
+  

@@ -1,0 +1,37 @@
+get:
+  operationId: get-all-flows
+  summary: Returns all flows (paginated)
+  x-implemented: true
+  description: ⚠️ This endpoint is not yet implemented
+  x-tags:
+    - flows
+  parameters:
+    - name: page
+      in: "query"
+      required: true
+      description: Number of a page to return from paginated flows list
+      schema:
+        type: integer
+        minimum: 1
+    - name: limit
+      in: "query"
+      required: true
+      description: Number of flows per page
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    '200':
+      description: A list of flows
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '../../components/schemas/flow/index.yaml'
+              pagination:
+                $ref: '../../components/schemas/misc/pagination.yaml'
+

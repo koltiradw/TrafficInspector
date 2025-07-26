@@ -1,0 +1,19 @@
+get:
+  operationId: get-flow-info
+  summary: Get detailed flow information by ID
+  x-implemented: true
+  description: ⚠️ This endpoint is not yet implemented
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Flow unique identifier
+  responses:
+    '200':
+      description: Detailed flow information
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/flow/flow-info.yaml'

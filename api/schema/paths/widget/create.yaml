@@ -1,0 +1,15 @@
+post:
+  operationId: wdiget-create
+  summary: Create a new widget
+  x-tags:
+    - widget
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/widget/index.yaml'
+  responses:
+    '201':
+      description: Widget created
+    '400':
+      description: Invalid request

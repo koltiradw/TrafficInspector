@@ -1,0 +1,42 @@
+type: object
+properties:
+  ja4:
+    type: string
+  ja3s:
+    type: string
+  blocks:
+    type: number
+  cipher:
+    type: string
+  version:
+    type: string
+  issuerDN:
+    type: string
+  subjectDN:
+    type: string
+  fingerprint:
+    type: string
+  server_name:
+    type: string
+  unsafe_cipher:
+    type: integer
+  negotiated_alpn:
+    type: string
+  advertised_alpns:
+    type: string
+  tls_supported_versions:
+    type: string
+required:
+  - ja4
+  - ja3s
+  - blocks
+  - cipher
+  - version
+  - issuerDN
+  - subjectDN
+  - fingerprint
+  - server_name
+  - unsafe_cipher
+  - negotiated_alpn
+  - advertised_alpns
+  - tls_supported_versions

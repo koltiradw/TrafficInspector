@@ -1,0 +1,4 @@
+type: string
+enum: ['*', category, protocol, src_ip, dst_ip, src_port, dst_port, src_country, dst_country]
+description: Flow object fields
+x-enum-source: '../flow/index.yaml'

@@ -1,0 +1,22 @@
+post:
+  operationId: dashboard-save-layout
+  summary: Save entire dashboard layout
+  x-tags:
+    - layout
+    - dashboard
+  parameters:
+    - name: dashboard
+      in: path
+      required: true
+      schema:
+        $ref: '../../components/parameters/dashboard.yaml'
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/dashboard/layout.yaml'
+  responses:
+    '200':
+      description: Layout saved successfully
+    '400':
+      description: Failed to save layout

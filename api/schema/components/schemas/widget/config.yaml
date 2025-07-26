@@ -1,0 +1,18 @@
+type: object
+description: Widget config
+properties:
+  source:
+    type: string
+    enum:
+      - flows
+      - monitoring
+  info:
+    type: string
+    description: Flow fields (for now)
+  visual:
+    type: string
+    enum:
+      - sensor
+      - line
+      - pie
+      - bar

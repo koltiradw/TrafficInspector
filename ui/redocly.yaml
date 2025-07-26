@@ -1,0 +1,8 @@
+extends:
+  - minimal
+
+apis:
+  core:
+    root: ../api/schema/openapi.yaml
+    rules:
+      security-defined: off

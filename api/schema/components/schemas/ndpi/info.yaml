@@ -1,0 +1,34 @@
+type: object
+properties:
+  tls:
+    $ref: './protocol/tls.yaml'
+  dns:
+    $ref: './protocol/dns.yaml'
+  breed:
+    type: string
+  proto:
+    type: string
+  category:
+    $ref: './category.yaml'
+  hostname:
+    type: string
+  proto_id:
+    type: string
+  domainame:
+    type: string
+  encrypted:
+    type: integer
+  flow_risk:
+    type: object
+    additionalProperties:
+      $ref: '../flow/flow-risk.yaml'
+  confidence:
+    type: object
+    additionalProperties:
+      type: string
+  category_id:
+    type: integer
+  proto_by_ip:
+    type: string
+  proto_by_ip_id:
+    type: integer

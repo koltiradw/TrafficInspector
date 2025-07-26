@@ -1,0 +1,23 @@
+type: object
+properties:
+  rsp_addr:
+    type: array
+    items:
+      type: string
+  rsp_type:
+    type: integer
+  query_type:
+    type: integer
+  reply_code:
+    type: integer
+  num_answers:
+    type: integer
+  num_queries:
+    type: integer
+required:
+  - rsp_addr
+  - rsp_type
+  - query_type
+  - reply_code
+  - num_answers
+  - num_queries

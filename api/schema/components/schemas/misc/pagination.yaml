@@ -1,0 +1,20 @@
+type: object
+description: Pagination object
+properties:
+  current_page:
+    type: integer
+    minimum: 0
+  limit:
+    type: integer
+  total_flows:
+    type: number
+  total_pages:
+    type: number
+  next_page:
+    type: number
+required:
+  - current_page
+  - limit
+  - total_flows
+  - total_pages
+  - next_page

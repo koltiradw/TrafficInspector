@@ -1,0 +1,36 @@
+type: object
+description: Base flow object
+properties:
+  id:
+    type: string
+  last_seen:
+    type: string
+  src_ip:
+    type: string
+  dst_ip: 
+    type: string
+  src_port:
+    type: integer
+  dst_port:
+    type: integer
+  src_country:
+    $ref: '../misc/country-code.yaml'
+  dst_country:
+    $ref: '../misc/country-code.yaml'
+  protocol:
+    $ref: '../ndpi/protocol/index.yaml'
+  category:
+    $ref: '../ndpi/category.yaml'
+required:
+  - id
+  - last_seen
+  - src_ip
+  - dst_ip
+  - src_port
+  - dst_port
+  - src_country
+  - dst_country
+  - protocol
+  - category
+
+

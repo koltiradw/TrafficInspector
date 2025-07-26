@@ -1,0 +1,12 @@
+type: string
+description: Application category as grouped by nDPI (e.g. Web, Email, Network, System, etc.)
+
+enum:
+  - Unspecified
+  - Download-FileTransfer-FileSharing
+  - Email
+  - Network
+  - System
+  - Web
+  - RemoteAccess
+  - DataTransfer

@@ -1,0 +1,23 @@
+type: object
+properties:
+  risk:
+    type: string
+  severity:
+    type: string
+  risk_score:
+    type: object
+    properties:
+      total:
+        type: integer
+      client:
+        type: integer
+      server:
+        type: integer
+    required:
+      - total
+      - client
+      - server
+required:
+  - risk
+  - severity
+  - risk_score

@@ -1,0 +1,24 @@
+type: array
+description: Array of widget layouts on a dashboard
+items:
+  type: object
+  properties:
+    x:
+      type: integer
+      x-nullable: true
+    y:
+      type: integer
+      x-nullable: true
+    w:
+      type: integer
+      minimum: 1
+      maximum: 4
+    h:
+      type: integer
+      minimum: 1
+      maximum: 4
+  required:
+    - x
+    - y
+    - w
+    - h

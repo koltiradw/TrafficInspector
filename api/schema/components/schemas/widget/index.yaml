@@ -1,0 +1,21 @@
+type: object
+description: Widget object
+properties:
+  i:
+    type: string
+    description: Widget ID
+  name:
+    type: string
+    description: Widget name
+  config:
+    $ref: './config.yaml'
+  in:
+    type: array
+    items:
+      type: string
+      enum: [dashboard, home]
+      description: Dashboards that have that widget
+required:
+  - i
+  - name
+  - config

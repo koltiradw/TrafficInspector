@@ -1,0 +1,16 @@
+delete:
+  operationId: widget-delete
+  summary: Delete a widget
+  x-tags:
+    - widget
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '204':
+      description: Widget deleted
+    '404':
+      description: Widget not found

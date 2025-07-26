@@ -1,0 +1,56 @@
+allOf:
+  - $ref: './index.yaml'
+  - type: object
+    properties:
+      src_mac:
+        type: string
+        description: Source MAC address
+      dst_mac:
+        type: string
+        description: Destination MAC address
+      ipv:
+        type: integer
+        description: IP version (IPv4, IPv6)
+        enum:
+          - 4
+          - 6
+      tcp_fingerprint:
+        type: string
+      src_os:
+        type: string
+      dst_os: 
+        type: string
+      src_as:
+        type: string
+      dst_as:
+        type: string
+      first_seen:
+        type: string
+      last_seen:
+        type: string
+      src_num_pkts:
+        type: integer
+      dst_num_pkts:
+        type: integer
+      src_len_pkts:
+        type: integer
+      dst_len_pkts:
+        type: integer
+      ndpi:
+        $ref: '../ndpi/info.yaml'
+    required:
+      - src_mac
+      - dst_mac
+      - ipv
+      - tcp_fingerprint
+      - src_os
+      - dst_os
+      - src_as
+      - dst_as
+      - first_seen
+      - last_seen
+      - src_num_pkts
+      - dst_num_pkts
+      - src_len_pkts
+      - dst_len_pkts
+      - ndpi

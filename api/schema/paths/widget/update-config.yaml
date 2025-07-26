@@ -1,0 +1,22 @@
+patch:
+  operationId: widget-config-update
+  summary: Update an existing widget
+  x-tags:
+    - widget
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/schemas/widget/config.yaml'
+  responses:
+    '200':
+      description: Widget updated
+    '404':
+      description: Widget not found

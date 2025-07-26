@@ -1,0 +1,26 @@
+post:
+  operationId: dashboard-delete-widget
+  summary: Delete widget from a dashboard
+  x-tags:
+    - dashboard
+  parameters:
+    - name: dashboard
+      in: path
+      required: true
+      schema:
+        $ref: '../../components/parameters/dashboard.yaml'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Widget ID
+  responses:
+    '200':
+      description: Widget deleted successfully
+    '400':
+      description: Failed to delete widget

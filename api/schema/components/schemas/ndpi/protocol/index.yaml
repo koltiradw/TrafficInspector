@@ -1,0 +1,36 @@
+type: string
+description: Protocol identifier as detected by nDPI (e.g. HTTP, DNS, SMTP, etc.)
+enum:
+  - UNKNOWN
+  - FTP_CONTROL
+  - MAIL_POP
+  - MAIL_SMTP
+  - MAIL_IMAP
+  - DNS
+  - IPP
+  - HTTP
+  - MDNS
+  - NTP
+  - NETBIOS
+  - NFS
+  - SSDP
+  - BGP
+  - SNMP
+  - XDMCP
+  - SMBV1
+  - SYSLOG
+  - DHCP
+  - POSTGRES
+  - MYSQL
+  - MS_OUTLOOK
+  - VK
+  - MAIL_POPS
+  - TAILSCALE
+  - YANDEX
+  - NTOP
+  - COAP
+  - VMWARE
+  - MAIL_SMTPS
+  - DTLS
+  - UBNTAC2
+  - BFCP

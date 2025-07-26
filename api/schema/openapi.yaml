@@ -1,0 +1,35 @@
+openapi: 3.1.0
+info:
+  title: /api OpenAPI spec
+  version: 0.0.1
+servers:
+  - url: /api
+    description: Go ui-backend
+tags:
+  - name: flows
+    description: All things related to flows
+  - name: dashboard
+    description: All things related to dashboards
+  - name: widget
+    description: All things related to working with widgets
+paths:
+  /flows/all:
+    $ref: './paths/flows/all.yaml'
+  /flows/{id}:
+    $ref: './paths/flows/get-by-id.yaml'
+  /statistics/flows:
+    $ref: './paths/statistics/flows.yaml'
+  /widget:
+    $ref: './paths/widget/create.yaml'
+  /widget/{id}:
+    $ref: './paths/widget/delete.yaml'
+  /widget/{id}/config:
+    $ref: './paths/widget/update-config.yaml'
+  /widget/{id}/name:
+    $ref: './paths/widget/update-name.yaml'
+  /dashboard/{dashboard}/widget-add:
+    $ref: './paths/dashboard/widget-add.yaml'
+  /dashboard/{dashboard}/widget-delete:
+    $ref: './paths/dashboard/widget-delete.yaml'
+  /dashboard/{dashboard}/layout:
+    $ref: './paths/dashboard/layout.yaml'
