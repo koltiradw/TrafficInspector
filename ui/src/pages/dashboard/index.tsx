@@ -7,7 +7,7 @@ import styles from "./styles.module.css";
 
 const Dashboard = () => {
 	return (
-		<PageWrapper heading='Dashboard'>
+		<PageWrapper>
 			<div className={styles["grid-layout"]}>
 				<div id='total' style={{ gridRow: "span 2" }} className={styles.tile}>
 					<$features.closed.flow.view.total size='xl' />

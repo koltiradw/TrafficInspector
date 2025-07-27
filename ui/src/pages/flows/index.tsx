@@ -18,10 +18,11 @@ const Page = () => {
 	};
 
 	return (
-		<PageWrapper heading={null} style={{ overflowX: "hidden" }}>
+		<PageWrapper paddingBlock='xl' style={{ overflowX: "hidden" }}>
 			<$features.closed.flow.view.table />
+
 			<$ui.overlay show={flowID !== null} onBack={closeOverlay}>
-				<PageWrapper heading={null}>
+				<PageWrapper paddingBlock='xl'>
 					<$features.closed.flow.view.info flow_id={flowID} />
 				</PageWrapper>
 			</$ui.overlay>

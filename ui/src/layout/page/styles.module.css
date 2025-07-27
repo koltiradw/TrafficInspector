@@ -25,3 +25,14 @@
 	padding-block: 4rem;
 }
 
+.page-content-wrapper.default {
+	padding-block: 4rem;
+}
+
+.page-content.wrapper.sm {
+	padding-block: 2rem;
+}
+
+.page-content.wrapper.xl {
+	padding-block: 6rem;
+}

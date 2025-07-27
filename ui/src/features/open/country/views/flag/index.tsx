@@ -1,13 +1,16 @@
 import React from "react";
-import type { FC } from "react";
+import type { ComponentProps, FC } from "react";
+
+import Tooltip from "@mui/material/Tooltip";
+import type { TooltipProps } from "@mui/material/Tooltip";
 
 import { $helpers } from "@shared";
 
-import type { CountryCode } from "../../model";
+import type { ENUM } from "../../model";
 
 import styles from "./styles.module.css";
 
-const mapper: Record<CountryCode, string> = {
+const mapper: Record<ENUM, string> = {
 	local: "Local",
 	unknown: "Unknown",
 	AD: "Andorra",
@@ -267,19 +270,45 @@ const mapper: Record<CountryCode, string> = {
 	ZW: "Zimbabwe",
 };
 
-interface Props {
-	code: CountryCode;
+interface Props extends ComponentProps<"div"> {
+	code: ENUM;
 	size?: "xl" | "md" | "sm" | "xs";
 }
 
 // https://www.npmjs.com/package/country-flag-icons - could be an alternative if flags are needed in bundle
-const Flag: FC<Props> = ({ code, size = "md" }) => (
-	<div className={styles["flag-hover-wrapper"]}>
-		<div className={$helpers.clsx([styles["flag-container"], styles[size]])} aria-label={mapper[code]}>
-			<img src={`assets/svg/flags/${code.toLowerCase()}.svg`} alt={`${mapper[code]} flag`} title={mapper[code]} />
-			<span className={styles["flag-label"]}>{mapper[code]}</span>
-		</div>
-	</div>
-);
+const Flag: FC<Props> = ({ code, size = "md", ...props }) => {
+	const Wrapper =
+		size === "sm" || size === "xs"
+			? (props: TooltipProps) => (
+					<Tooltip
+						{...props}
+						placement='top'
+						slotProps={{
+							popper: {
+								modifiers: [
+									{
+										name: "offset",
+										options: {
+											offset: [0, -10],
+										},
+									},
+								],
+							},
+						}}
+					/>
+				)
+			: (props: ComponentProps<"div">) => (
+					<div {...props} className={$helpers.clsx(styles["flag-hover-wrapper"], props.className)} />
+				);
+
+	return (
+		<Wrapper title={mapper[code]} className={props.className}>
+			<div className={$helpers.clsx([styles["flag-container"], styles[size]])} aria-label={mapper[code]}>
+				<img src={`assets/svg/flags/${code.toLowerCase()}.svg`} alt={`${mapper[code]} flag`} title={mapper[code]} />
+				{(size === "xl" || size === "md") && <span className={styles["flag-label"]}>{mapper[code]}</span>}
+			</div>
+		</Wrapper>
+	);
+};
 
 export default Flag;

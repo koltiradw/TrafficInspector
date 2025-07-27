@@ -11,9 +11,7 @@ interface Props {
 }
 
 const Page: FC<Props> = ({ flow_id }) => (
-	<PageWrapper heading='Network Flow Info'>
-		{flow_id !== undefined && <$features.closed.flow.view.info flow_id={flow_id} />}
-	</PageWrapper>
+	<PageWrapper>{flow_id !== undefined && <$features.closed.flow.view.info flow_id={flow_id} />}</PageWrapper>
 );
 
 export default Page;

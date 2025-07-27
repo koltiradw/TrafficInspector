@@ -1,21 +1,18 @@
 import React from "react";
-import type { ComponentProps, FC, PropsWithChildren, ReactNode } from "react";
+import type { ComponentProps, FC, PropsWithChildren } from "react";
 
-import { $ui } from "@shared";
+import { $helpers, $ui } from "@shared";
 
 import styles from "./styles.module.css";
-import clsx from "@shared/helpers/clsx";
 
 type Props = PropsWithChildren<ComponentProps<"div">> & {
-	heading: ReactNode;
+	paddingBlock?: "default" | "sm" | "xl";
 };
 
-const Page: FC<Props> = ({ heading, className, children, ...props }) => (
-	<$ui.scrollable {...props} className={clsx(className, styles["page-container"])}>
-		{/* <$ui.pageHeader>{heading}</$ui.pageHeader> */}
-		<div className={styles["page-content-wrapper"]}>{children}</div>
+const Page: FC<Props> = ({ paddingBlock = "default", className, children, ...props }) => (
+	<$ui.scrollable {...props} className={$helpers.clsx(className, styles["page-container"])}>
+		<div className={$helpers.clsx(styles["page-content-wrapper"], styles[paddingBlock])}>{children}</div>
 	</$ui.scrollable>
 );
 
 export default Page;
-
