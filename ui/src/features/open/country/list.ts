@@ -1,4 +1,6 @@
-const LIST = [
+import type { ENUM } from "./model";
+
+const LIST: ENUM[] = [
 	"local",
 	"unknown",
 	"AD",

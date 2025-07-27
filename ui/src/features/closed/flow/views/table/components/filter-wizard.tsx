@@ -12,17 +12,16 @@ import FormControl from "@mui/material/FormControl";
 
 import { $features, type Features } from "@features";
 
-import type { Filter } from "../../model";
+import type { Filter } from "../../../model";
 
 interface Props {
 	filter: Filter | null; // null for "create" mode
 	onSave: (filter: Filter, apply: boolean) => void;
 	onClose: VoidFunction;
-	className?: string;
 	style?: CSSProperties;
 }
 
-export default function FilterWizard({ filter, className, style, onClose, onSave }: Props) {
+export default function FilterWizard({ filter, style, onClose, onSave }: Props) {
 	const [name, setName] = useState<string | undefined>(undefined);
 	const [category, setCategory] = useState<Features["open"]["category"]["enum"] | undefined>(undefined);
 	const [protocol, setProtocol] = useState<Features["open"]["protocol"]["enum"] | undefined>(undefined);
@@ -125,12 +124,12 @@ export default function FilterWizard({ filter, className, style, onClose, onSave
 				}}
 			>
 				<FormControl fullWidth size='small'>
-					<InputLabel id='form-destination-port-label'>Name</InputLabel>
-					<TextField size='small' onChange={(e) => setName(e.target.value)} value={name} />
+					<TextField size='small' placeholder='Name' onChange={(e) => setName(e.target.value)} value={name} />
 				</FormControl>
 				<FormControl fullWidth size='small'>
 					<InputLabel id='form-category-label'>Category</InputLabel>
 					<$features.open.category.view.select
+						labelId='form-category-label'
 						autoWidth={false}
 						multiple={false}
 						native={false}
@@ -141,6 +140,7 @@ export default function FilterWizard({ filter, className, style, onClose, onSave
 				<FormControl fullWidth size='small'>
 					<InputLabel id='form-protocol-label'>Protocol</InputLabel>
 					<$features.open.protocol.view.select
+						labelId='form-protocol-label'
 						autoWidth={false}
 						multiple={false}
 						native={false}
@@ -151,6 +151,7 @@ export default function FilterWizard({ filter, className, style, onClose, onSave
 				<FormControl fullWidth size='small'>
 					<InputLabel id='form-source-country-label'>Source country</InputLabel>
 					<$features.open.country.view.select
+						labelId='form-source-country-label'
 						autoWidth={false}
 						multiple={false}
 						native={false}
@@ -161,6 +162,7 @@ export default function FilterWizard({ filter, className, style, onClose, onSave
 				<FormControl fullWidth size='small'>
 					<InputLabel id='form-destination-country-label'>Desination country</InputLabel>
 					<$features.open.country.view.select
+						labelId='form-destination-country-label'
 						autoWidth={false}
 						multiple={false}
 						native={false}
@@ -169,21 +171,38 @@ export default function FilterWizard({ filter, className, style, onClose, onSave
 					/>
 				</FormControl>
 				<FormControl fullWidth size='small'>
-					<InputLabel id='form-source-ip-label'>Source IP</InputLabel>
-					<$features.open.ip.view.input value={srcIP} onChange={(e) => setSrcIP(e.target.value)} size='small' />
+					<$features.open.ip.view.input
+						placeholder='Source IP'
+						value={srcIP}
+						onChange={(e) => setSrcIP(e.target.value)}
+						size='small'
+					/>
 				</FormControl>
 				<FormControl fullWidth size='small'>
-					<InputLabel id='form-destination-ip-label'>Desination IP</InputLabel>
-					<$features.open.ip.view.input value={dstIP} onChange={(e) => setDstIP(e.target.value)} size='small' />
+					<$features.open.ip.view.input
+						placeholder='Destination IP'
+						value={dstIP}
+						onChange={(e) => setDstIP(e.target.value)}
+						size='small'
+					/>
 				</FormControl>
 				<FormControl fullWidth size='small'>
-					<InputLabel id='form-source-port-label'>Source port</InputLabel>
-					<TextField type='number' size='small' value={srcPort} onChange={(e) => setSrcPort(Number(e.target.value))} />
-					{/* <$features.open.ip.view.input onChange={(e) => console.log(e.target.value)} /> */}
+					<TextField
+						placeholder='Source port'
+						type='number'
+						size='small'
+						value={srcPort}
+						onChange={(e) => setSrcPort(Number(e.target.value))}
+					/>
 				</FormControl>
 				<FormControl fullWidth size='small'>
-					<InputLabel id='form-destination-port-label'>Desination port</InputLabel>
-					<TextField type='number' size='small' value={dstPort} onChange={(e) => setDstPort(Number(e.target.value))} />
+					<TextField
+						placeholder='Destination port'
+						type='number'
+						size='small'
+						value={dstPort}
+						onChange={(e) => setDstPort(Number(e.target.value))}
+					/>
 				</FormControl>
 			</div>
 			<Divider />

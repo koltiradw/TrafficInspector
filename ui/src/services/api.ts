@@ -14,7 +14,7 @@ export interface $ApiFail {
 	code: number;
 }
 
-type $ApiOptions = Pick<Options, "signal">;
+type $ApiOptions = Pick<Options, "signal" | "body">;
 
 async function parseNetResponse<T = AnyObject>(res: KyResponse<unknown>) {
 	let response: $ApiSuccess<T> | $ApiFail;
@@ -57,17 +57,18 @@ const kyInstance = ky.create({
 	throwHttpErrors: false,
 });
 
-const api = async <T = AnyObject>(url: Input, options?: $ApiOptions) =>
-	parseNetResponse<T>(await kyInstance(url, options));
-api.get = async <T = AnyObject>(url: Input, options?: $ApiOptions) =>
-	parseNetResponse<T>(await kyInstance.get(url, options));
-api.put = async <T = AnyObject>(url: Input, options?: $ApiOptions) =>
-	parseNetResponse<T>(await kyInstance.put(url, options));
-api.post = async <T = AnyObject>(url: Input, options?: $ApiOptions) =>
-	parseNetResponse<T>(await kyInstance.post(url, options));
-api.patch = async <T = AnyObject>(url: Input, options?: $ApiOptions) =>
-	parseNetResponse<T>(await kyInstance.patch(url, options));
-api.delete = async <T = AnyObject>(url: Input, options?: $ApiOptions) =>
-	parseNetResponse<T>(await kyInstance.delete(url, options));
+const api = async <T = AnyObject>(url: Partial<Input>, options?: $ApiOptions) =>
+	parseNetResponse<T>(await kyInstance(url as Input, options));
+
+api.get = async <T = AnyObject>(url: Partial<Input>, options?: $ApiOptions) =>
+	parseNetResponse<T>(await kyInstance.get(url as Input, options));
+api.put = async <T = AnyObject>(url: Partial<Input>, options?: $ApiOptions) =>
+	parseNetResponse<T>(await kyInstance.put(url as Input, options));
+api.post = async <T = AnyObject>(url: Partial<Input>, options?: $ApiOptions) =>
+	parseNetResponse<T>(await kyInstance.post(url as Input, options));
+api.patch = async <T = AnyObject>(url: Partial<Input>, options?: $ApiOptions) =>
+	parseNetResponse<T>(await kyInstance.patch(url as Input, options));
+api.delete = async <T = AnyObject>(url: Partial<Input>, options?: $ApiOptions) =>
+	parseNetResponse<T>(await kyInstance.delete(url as Input, options));
 
 export default api;

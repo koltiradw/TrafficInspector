@@ -1,11 +1,14 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useSearchParams } from "wouter";
 
-import { DataGrid, DataGridProps } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
+import type { DataGridProps } from "@mui/x-data-grid";
 
-import Toolbar from "./toolbar";
-import Pagination from "./footer";
+import Toolbar from "./components/toolbar";
+import Feedback from "./components/feedback";
+import Pagination from "./components/footer";
+
 import { CONFIG } from "./config";
+import { useFilterParams } from "./hooks";
 
 import { getList, type TablePagination } from "../../endpoint/query";
 
@@ -21,14 +24,10 @@ const defaultPagination = {
 
 const AUTO_UPDATE_INTERVAL = 30; // in seconds
 
-// TODO: virtualization > pagination?; btn for auto-update?
+// TODO: virtualization > pagination?
 const Table = () => {
-	const [searchParams, setSearchParams] = useSearchParams();
-
-	const currentPage = Number(searchParams.get("page") ?? defaultPagination.current_page);
-	const limit = Number(searchParams.get("limit") ?? defaultPagination.limit);
-	const flowID = searchParams.get("id");
-	const filterID = searchParams.get("filterID");
+	const [filterParams, searchParams, setSearchParams] = useFilterParams();
+	const { flowID, filterID, limit, currentPage } = filterParams;
 
 	const [flows, setFlows] = useState<Flow[]>([]);
 
@@ -51,7 +50,9 @@ const Table = () => {
 
 	const manualUpdate = () => {
 		currentReqController.current?.abort();
-		autoInterval.current && clearInterval(autoInterval.current);
+		if (autoInterval.current !== undefined) {
+			clearInterval(autoInterval.current);
+		}
 
 		doFetch().then(() => handleAuto());
 	};
@@ -65,7 +66,7 @@ const Table = () => {
 	const doFetch = async () => {
 		setIsLoading(true);
 		currentReqController.current = new AbortController();
-		const res = await getList(currentPage, limit, currentReqController.current?.signal);
+		const res = await getList({ page: currentPage, limit, filterID }, currentReqController.current?.signal);
 		setIsLoading(false);
 
 		if (res.ok) {
@@ -90,7 +91,7 @@ const Table = () => {
 				currentReqController.current?.abort();
 			}
 		};
-	}, [isAuto, currentPage, limit, flowID]);
+	}, [isAuto, currentPage, limit, flowID, filterID]);
 
 	useLayoutEffect(() => {
 		if (flowID === null) {
@@ -107,7 +108,7 @@ const Table = () => {
 		setSearchParams(searchParams);
 	};
 
-	const handlePagination: DataGridProps<Flow>["onPaginationModelChange"] = (model, details) => {
+	const handlePagination: DataGridProps<Flow>["onPaginationModelChange"] = (model) => {
 		setSearchParams({ page: String(model.page + 1), limit: String(model.pageSize) });
 	};
 
@@ -124,10 +125,13 @@ const Table = () => {
 						interval={AUTO_UPDATE_INTERVAL}
 						updateInProgress={isLoading}
 						startCountDown={isAuto}
+						error={error}
 					/>
 				),
 				baseLinearProgress: () => null,
 				pagination: Pagination,
+				noRowsOverlay: Feedback,
+				noResultsOverlay: Feedback,
 			}}
 			/* pagination */
 			rowCount={pagination.current.total_flows}
@@ -136,7 +140,6 @@ const Table = () => {
 			paginationModel={{ page: currentPage - 1, pageSize: limit }}
 			onPaginationModelChange={handlePagination}
 			/* configuration */
-
 			initialState={{
 				pagination: {
 					rowCount: 0,

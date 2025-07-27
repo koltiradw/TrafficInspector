@@ -7,7 +7,7 @@ import type { Features } from "@features";
 
 import styles from "./styles.module.css";
 
-const columns: GridColDef<Features["closed"]["flow"]["default"]>[] = [
+const columns: Array<GridColDef<Features["closed"]["flow"]["default"]>> = [
 	{
 		field: "id",
 		headerName: "ID",

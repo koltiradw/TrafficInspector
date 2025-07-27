@@ -17,6 +17,7 @@ interface Props {
 	interval: number;
 	updateInProgress: boolean;
 	startCountDown: boolean;
+	error: string | null;
 }
 
 export default function CustomToolbar({
@@ -26,6 +27,7 @@ export default function CustomToolbar({
 	updateInProgress,
 	startCountDown,
 	interval,
+	error,
 }: Props) {
 	const [timeLeft, setTimeLeft] = useState(interval);
 	const timerRef = useRef<NodeJS.Timeout>(undefined);
@@ -82,6 +84,12 @@ export default function CustomToolbar({
 						Update
 					</Button>
 				</Box>
+				{!updateInProgress && error !== null && (
+					<Typography color='error' variant='baseXl'>
+						{error}
+					</Typography>
+				)}
+
 				<Typography display='block' align='right' fontSize='1rem' fontStyle={updateInProgress ? "normal" : "italic"}>
 					{updateInProgress && "Loading..."}
 					{!updateInProgress && startCountDown && `Updating in ${timeLeft} seconds`}

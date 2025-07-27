@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Primitive } from "ky/distribution/types/common";
 
 import { $api } from "@services";
+import type { $ApiFail, $ApiSuccess } from "@services/api";
 
 export default function useFetch<Response, Default = undefined>(
-	path: string,
+	query: string | ((signal?: AbortSignal) => Promise<$ApiSuccess<Response> | $ApiFail>),
 	deps: Primitive[],
 	opts: { interval?: number; defaultValue?: Default }
 ) {
@@ -12,9 +13,14 @@ export default function useFetch<Response, Default = undefined>(
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	const fetcher = useMemo(
+		() => (typeof query === "string" ? (signal: AbortSignal) => $api.get<Response>(query, { signal }) : query),
+		[query]
+	);
+
 	const doFetch = async (signal: AbortSignal) => {
 		setIsLoading(true);
-		const res = await $api.get<Response>(path, { signal });
+		const res = await fetcher(signal);
 
 		if (res.ok) {
 			setError(null);

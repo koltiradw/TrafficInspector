@@ -1,32 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "wouter";
 
-import {
-	gridPageCountSelector,
-	gridPageSelector,
-	gridPageSizeSelector,
-	useGridApiContext,
-	useGridSelector,
-} from "@mui/x-data-grid";
+import { gridPageCountSelector, gridPageSelector, useGridApiContext, useGridSelector } from "@mui/x-data-grid";
 
 import Button from "@mui/material/Button";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import Skeleton from "@mui/material/Skeleton";
 import InputLabel from "@mui/material/InputLabel";
 import Pagination from "@mui/material/Pagination";
 import FormControl from "@mui/material/FormControl";
 
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import BackspaceIcon from "@mui/icons-material/Backspace";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
-import { $ui } from "@shared";
+import { $ui, $hooks } from "@shared";
 
 import FilterWizard, { type FilterWizardProps } from "./filter-wizard";
-import type { Filter } from "../../model";
+import type { Filter } from "../../../model";
+import { deleteFilter, getFilters } from "@features/closed/flow/endpoint/query";
+import { Typography } from "@mui/material";
 
-export default function CustomFooter(props: any) {
+export default function CustomFooter() {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const activeFilter = searchParams.get("filterID");
+
+	const { data: filtersData, isLoading, error } = $hooks.useFetch(getFilters, [], { defaultValue: [] });
 
 	const [filters, setFilters] = useState<Filter[]>([]);
 
@@ -34,7 +35,6 @@ export default function CustomFooter(props: any) {
 
 	const page = useGridSelector(apiRef, gridPageSelector);
 	const pageCount = useGridSelector(apiRef, gridPageCountSelector);
-	const pageSize = useGridSelector(apiRef, gridPageSizeSelector);
 
 	const [showFilterOverlay, setShowFilterOverlay] = useState(false);
 
@@ -60,8 +60,13 @@ export default function CustomFooter(props: any) {
 
 		if (del) {
 			setFilters((current) => current.filter((f) => f.id !== activeFilter));
+			deleteFilter(activeFilter!);
 		}
 	};
+
+	useEffect(() => {
+		setFilters(filtersData as typeof filters);
+	}, [filtersData]);
 
 	return (
 		<div
@@ -75,31 +80,56 @@ export default function CustomFooter(props: any) {
 				alignItems: "center",
 			}}
 		>
-			<div style={{ display: "inline-flex", alignItems: "center", gap: "1rem" }}>
+			<div style={{ display: "inline-flex", alignItems: "center", gap: "1rem", height: "100%" }}>
 				<Button startIcon={<AddIcon />} variant='outlined' onClick={() => setShowFilterOverlay(true)}>
 					Create filter
 				</Button>
-				<FormControl fullWidth sx={{ flex: "0 0 180px " }}>
-					<InputLabel id='select-filter-label'>Choose filter</InputLabel>
-					<Select
-						value={activeFilter ?? undefined}
-						defaultValue='Choose filter'
-						id='select-filter'
-						labelId='select-filter-label'
-						onChange={(event) => selectFilter(event.target.value)}
-					>
-						{filters.map((filter) => (
-							<MenuItem value={filter.id}>{filter.name}</MenuItem>
-						))}
-					</Select>
-				</FormControl>
+
+				{isLoading && <Skeleton animation='wave' variant='rounded' width={180} height={48} />}
+
+				{!isLoading && (
+					<FormControl fullWidth sx={{ flex: "0 0 180px ", height: "100%", marginTop: "16px" }}>
+						<InputLabel color={error ? "error" : undefined} id='select-filter-label'>
+							{error && (
+								<Typography
+									color='error'
+									sx={{ maxWidth: "100%", whiteSpace: "nowrap", textOverflow: "ellipsis", display: "block" }}
+								>
+									{error}
+								</Typography>
+							)}
+							{!error && "Choose a filter"}
+						</InputLabel>
+						<Select
+							value={activeFilter ?? undefined}
+							label={error ?? undefined}
+							id='select-filter'
+							labelId={error === null ? "select-filter-label" : undefined}
+							onChange={(event) => selectFilter(event.target.value)}
+							disabled={error !== null}
+							color={error ? "error" : undefined}
+							size='small'
+							sx={{
+								"& .MuiInputBase-input": {
+									padding: "8px 14px",
+								},
+								marginTop: "8px",
+							}}
+						>
+							{filters.map((filter) => (
+								<MenuItem value={filter.id}>{filter.name}</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+				)}
+
 				<Button
-					startIcon={<EditIcon />}
+					startIcon={<BackspaceIcon />}
 					variant='outlined'
 					disabled={activeFilter === null}
 					onClick={() => removeFilter()}
 				>
-					Remove filter
+					Remove
 				</Button>
 				<Button
 					startIcon={<EditIcon />}
@@ -107,17 +137,18 @@ export default function CustomFooter(props: any) {
 					variant='outlined'
 					disabled={activeFilter === null}
 				>
-					Edit filter
+					Edit
 				</Button>
 				<Button
-					startIcon={<EditIcon />}
+					startIcon={<DeleteForeverIcon />}
 					variant='outlined'
 					disabled={activeFilter === null}
 					onClick={() => removeFilter(true)}
 				>
-					Delete filter
+					Delete
 				</Button>
 			</div>
+
 			<Pagination
 				variant='outlined'
 				shape='rounded'

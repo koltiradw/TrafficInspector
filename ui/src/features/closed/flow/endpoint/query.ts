@@ -1,6 +1,6 @@
 import { $api } from "@services";
 
-import type { Flow, FlowDetailed } from "../model";
+import type { Filter, Flow, FlowDetailed } from "../model";
 
 export interface TablePagination {
 	current_page: number;
@@ -15,8 +15,21 @@ export interface ApiResponse {
 	pagination: TablePagination;
 }
 
-export const getList = async (page: number, limit = 20, signal?: AbortSignal) =>
-	await $api<ApiResponse>(`flows/all?page=${page}&limit=${limit}`, { signal });
+interface GetListParams {
+	page: number;
+	limit: number;
+	filterID?: string | null | undefined;
+}
+
+export const getList = async (params: GetListParams, signal?: AbortSignal) => {
+	const searchParams = new URLSearchParams({ page: String(params.page), limit: String(params.limit) });
+
+	if (params.filterID) {
+		searchParams.append("filterID", params.filterID);
+	}
+
+	return await $api<ApiResponse>(`flows/all?${searchParams.toString()}`, { signal });
+};
 
 export const getFlow = async (id: Flow["id"], signal?: AbortSignal) =>
 	await $api<FlowDetailed>(`flows/${id}`, { signal });
@@ -25,3 +38,7 @@ export const getTotal = async (signal?: AbortSignal) => await $api<number>(`flow
 
 export const getTotalOverTime = async (signal?: AbortSignal) => await $api(`dashboard/total`, { signal });
 
+export const getFilters = () => $api<unknown>("flows/filters");
+export const saveFilter = (filter: Filter) =>
+	$api.post<unknown>(`flows/filters/${filter.id}`, { body: JSON.stringify(filter) });
+export const deleteFilter = (filterID: Filter["id"]) => $api.delete(`flows/filters/${filterID}`);
