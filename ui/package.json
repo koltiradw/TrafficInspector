@@ -4,6 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"dev": "npm run build:dev",
+		"build": "npm run build:prod",
 		"build:dev": "node build-scripts/dev.js",
 		"build:prod": "node build-scripts/build.js",
 		"build:api-docs": "npx redocly build-docs ../api/schema/openapi.yaml --output ../api/schema/openapi.html --config ./redocly.yaml --disableGoogleFont --title \"TrafficInspector OpenAPI Spec\"",

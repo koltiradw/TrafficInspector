@@ -102,7 +102,7 @@ const onFileChange = async () => {
 	logger.log("rebuiliding...", "🔁");
 
 	try {
-		await this.ctx.rebuild();
+		await ctx.rebuild();
 	} catch {
 		// empty handle
 		// https://github.com/evanw/esbuild/issues/4218
