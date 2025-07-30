@@ -26,9 +26,11 @@
 		"@nivo/core": "0.93.0",
 		"@nivo/line": "0.93.0",
 		"@nivo/pie": "0.93.0",
+		"jotai": "2.12.5",
 		"ky": "1.8.1",
 		"react": "19.1.0",
 		"react-dom": "19.1.0",
+		"react-toastify": "11.0.5",
 		"reactflow": "11.11.4",
 		"wouter": "3.7.0"
 	},
