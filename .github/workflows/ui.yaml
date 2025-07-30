@@ -42,8 +42,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: 'ui/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'ui/package-lock.json'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-cache-${{ hashFiles('ui/package.json') }}
+          restore-keys: |
+            npm-cache-
 
       - name: Install deps
         run: npm ci
