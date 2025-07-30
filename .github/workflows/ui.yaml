@@ -52,7 +52,7 @@ jobs:
             npm-cache-
 
       - name: Install deps
-        run: npm ci
+        run: npm i
 
       - name: CodeQL init
         uses: github/codeql-action/init@v3
