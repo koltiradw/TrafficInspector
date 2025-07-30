@@ -6,10 +6,10 @@ import Chip from "@mui/material/Chip";
 import { $helpers } from "@shared";
 
 import { color } from "../helpers";
-import type { Category } from "../model";
+import type { ENUM } from "../model";
 
 interface Props {
-	category: Category;
+	category: ENUM;
 }
 
 const Badge: FC<Props> = ({ category }) => (
@@ -17,9 +17,7 @@ const Badge: FC<Props> = ({ category }) => (
 		label={category}
 		sx={{
 			backgroundColor: color[category],
-			color: $helpers.style.isColorLight(color[category])
-				? "#333333"
-				: "#FAF0E6",
+			color: $helpers.style.isColorLight(color[category]) ? "#333333" : "#FAF0E6",
 			fontWeight: "bold",
 		}}
 	/>

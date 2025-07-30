@@ -1,3 +1,8 @@
-import type { Protocol } from './model.ts';
+import { COLORS } from "@layout/theme";
 
-export const color: Record<Protocol, string> = {};
+import type { ENUM } from "./model.ts";
+
+export const color: Record<ENUM, string> = {
+	DNS: COLORS.accent,
+	TCP: COLORS.accent,
+};

@@ -1,1 +1,1 @@
-export type ENUM = "DNS" | "TCP" | "";
+export type ENUM = "DNS" | "TCP";

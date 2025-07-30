@@ -6,10 +6,10 @@ import Chip from "@mui/material/Chip";
 import { $helpers } from "@shared";
 
 import { color } from "./helpers";
-import type { Category } from "./model";
+import type { ENUM } from "./model";
 
 interface Props {
-	category: Category;
+	category: ENUM;
 }
 
 export const Inline: FC<Props> = ({ category }) => (

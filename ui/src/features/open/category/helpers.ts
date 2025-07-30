@@ -1,6 +1,6 @@
-import type { Category } from "./model";
+import type { ENUM } from "./model";
 
-export const color: Record<Category, string> = {
+export const color: Record<ENUM, string> = {
 	"": "#ff0000",
 	Unspecified: "#ff0000",
 	Media: "#ff7f00",
@@ -33,3 +33,4 @@ export const color: Record<Category, string> = {
 	Cybersecurity: "#212121",
 	AdultContent: "#D50000",
 };
+

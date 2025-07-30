@@ -7,10 +7,10 @@ import { $helpers } from "@shared";
 import { COLORS } from "@layout/theme";
 
 import { color } from "../helpers";
-import type { Protocol } from "../model";
+import type { ENUM } from "../model";
 
 interface Props {
-	protocol: Protocol;
+	protocol: ENUM;
 }
 
 const Badge: FC<Props> = ({ protocol }) => (
@@ -18,9 +18,7 @@ const Badge: FC<Props> = ({ protocol }) => (
 		label={protocol}
 		sx={{
 			backgroundColor: color[protocol] ?? COLORS.accent,
-			color: $helpers.style.isColorLight(color[protocol] ?? COLORS.accent)
-				? "#333333"
-				: "#FAF0E6",
+			color: $helpers.style.isColorLight(color[protocol] ?? COLORS.accent) ? "#333333" : "#FAF0E6",
 			fontWeight: "bold",
 		}}
 	/>
