@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"help": "npm run",
 		"dev": "npm run build:dev",
 		"build": "npm run build:prod",
 		"build:dev": "node build-scripts/dev.js",
